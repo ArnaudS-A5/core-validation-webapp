@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Tableaux</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" class="active" aria-current="page" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Tableaux</h1>
+    <p>Tableau alimenté par le serveur : recherche, tri par colonne, pagination, sélection, édition en ligne, ajout et suppression avec confirmation.</p>
+  </div>
+  <section class="card" id="section-add">
+    <h2>Ajouter un article</h2>
+    <form id="add-form" class="row" novalidate>
+      <input type="text" id="add-name" name="name" placeholder="Nom">
+      <select id="add-category" name="category">
+        <option value="Informatique">Informatique</option>
+        <option value="Maison">Maison</option>
+        <option value="Jardin">Jardin</option>
+        <option value="Sport">Sport</option>
+        <option value="Livres">Livres</option>
+      </select>
+      <input type="number" id="add-price" name="price" placeholder="Prix" min="0" step="0.01">
+      <button type="submit" id="add-submit" class="primary">Ajouter</button>
+      <span id="add-error" class="field-error"></span>
+    </form>
+  </section>
+
+  <section class="card" id="section-table">
+    <h2>Articles</h2>
+    <div class="row">
+      <input type="text" id="table-search" placeholder="Rechercher…">
+      <button type="button" id="btn-search">Rechercher</button>
+      <label for="page-size">Lignes par page</label>
+      <select id="page-size">
+        <option value="5">5</option>
+        <option value="10" selected>10</option>
+        <option value="20">20</option>
+      </select>
+      <span id="table-status" role="status" class="hint">Chargement…</span>
+    </div>
+    <table id="items-table">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="check-all-rows" aria-label="Tout sélectionner"></th>
+          <th class="sortable" id="sort-id" data-sort="id" aria-sort="none">N°</th>
+          <th class="sortable" id="sort-name" data-sort="name" aria-sort="none">Nom</th>
+          <th class="sortable" id="sort-category" data-sort="category" aria-sort="none">Catégorie</th>
+          <th class="sortable" id="sort-price" data-sort="price" aria-sort="none">Prix</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="items-body"></tbody>
+    </table>
+    <div id="pagination" class="pagination" role="navigation" aria-label="Pagination"></div>
+    <div class="row">
+      <button type="button" id="btn-delete-selected" class="danger" disabled>Supprimer la sélection</button>
+      <span id="selection-count" class="hint">0 sélectionné(s)</span>
+    </div>
+    <div id="table-message" class="result"></div>
+  </section>
+
+  <div id="confirm-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="modal">
+      <h2 id="confirm-title">Confirmer la suppression</h2>
+      <p id="confirm-text"></p>
+      <div class="modal-actions">
+        <button type="button" id="confirm-no">Annuler</button>
+        <button type="button" id="confirm-yes" class="danger">Supprimer</button>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/tables.js"></script>
+</body>
+</html>

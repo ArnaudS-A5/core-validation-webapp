@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fenêtre secondaire</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<main>
+  <h1 id="popup-title">Fenêtre secondaire</h1>
+  <section class="card">
+    <p>Origine : <strong id="popup-origin">inconnue</strong></p>
+    <div class="field">
+      <label for="popup-input">Message à renvoyer à la fenêtre d'origine</label>
+      <input type="text" id="popup-input" value="Bonjour depuis la fenêtre secondaire">
+    </div>
+    <div class="row">
+      <button type="button" id="popup-send" class="primary">Envoyer</button>
+      <button type="button" id="popup-close">Fermer la fenêtre</button>
+      <a id="popup-back" class="btn" href="windows.html">Retour aux fenêtres</a>
+    </div>
+    <div id="popup-status" class="result" role="status"></div>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/popup.js"></script>
+</body>
+</html>

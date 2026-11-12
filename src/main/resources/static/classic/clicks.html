@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Clics</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" class="active" aria-current="page" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Clics</h1>
+    <p>Famille « clics » : la grande majorité des actions utilisateur. Chaque bouton affiche son effet dans une zone de résultat.</p>
+  </div>
+  <section class="card" id="section-counter">
+    <h2>Compteur</h2>
+    <div class="row">
+      <button type="button" id="btn-decrement">−</button>
+      <strong id="counter-value" aria-live="polite">0</strong>
+      <button type="button" id="btn-increment" class="primary">+</button>
+      <button type="button" id="btn-reset-counter">Réinitialiser</button>
+    </div>
+  </section>
+
+  <section class="card" id="section-mouse">
+    <h2>Double-clic, clic droit, survol</h2>
+    <div class="row">
+      <button type="button" id="btn-double-click">Double-cliquez ici</button>
+      <span id="double-click-result" class="result"></span>
+    </div>
+    <div class="row">
+      <button type="button" id="btn-right-click">Clic droit ici</button>
+      <span id="right-click-result" class="result"></span>
+    </div>
+    <div class="row">
+      <span id="hover-target">Survolez-moi</span>
+      <span id="hover-tooltip" class="tooltip" role="tooltip">Info-bulle affichée au survol</span>
+    </div>
+  </section>
+
+  <section class="card" id="section-state">
+    <h2>États des boutons</h2>
+    <div class="row">
+      <button type="button" id="btn-disabled" disabled>Bouton désactivé</button>
+      <button type="button" id="btn-enable-disabled">Activer après chargement</button>
+      <span id="disabled-result" class="result"></span>
+    </div>
+    <div class="row">
+      <button type="button" id="btn-reveal">Révéler le bouton caché</button>
+      <button type="button" id="hidden-btn" class="hidden">Bouton révélé</button>
+      <span id="reveal-result" class="result"></span>
+    </div>
+    <div class="row">
+      <button type="button" id="btn-toggle" aria-pressed="false">Mode : désactivé</button>
+    </div>
+  </section>
+
+  <section class="card" id="section-moving">
+    <h2>Éléments mobiles ou masqués</h2>
+    <div class="row">
+      <button type="button" id="btn-move">Déplacer le bouton</button>
+      <button type="button" id="moving-btn">Bouton mobile (animation 0,8 s)</button>
+      <span id="moving-result" class="result"></span>
+    </div>
+    <div class="row">
+      <span class="covered-wrap">
+        <button type="button" id="btn-covered">Bouton recouvert</button>
+        <span id="cover" class="cover" aria-hidden="true"></span>
+      </span>
+      <span id="covered-result" class="result"></span>
+    </div>
+    <p class="hint">Le bouton recouvert est inaccessible (un calque transparent le masque) pendant 2 secondes après le chargement de la page.</p>
+  </section>
+
+  <section class="card" id="section-server">
+    <h2>Clic avec appel serveur</h2>
+    <div class="row">
+      <button type="button" id="btn-server-click" class="primary">Obtenir l'heure du serveur</button>
+      <span id="server-click-spinner" class="spinner" role="status"></span>
+      <span id="server-click-result" class="result"></span>
+    </div>
+  </section>
+
+  <section class="card" id="section-links">
+    <h2>Liens et libellés identiques</h2>
+    <div class="row">
+      <a id="link-anchor" href="#section-links">Lien d'ancrage (même page)</a>
+      <a id="link-forms" href="forms.html">Aller aux formulaires</a>
+    </div>
+    <h3>Trois boutons « Supprimer » (même libellé, ordre significatif)</h3>
+    <ul id="row-list">
+      <li id="row-1">Ligne 1 <button type="button" id="delete-row-1" class="danger">Supprimer</button></li>
+      <li id="row-2">Ligne 2 <button type="button" id="delete-row-2" class="danger">Supprimer</button></li>
+      <li id="row-3">Ligne 3 <button type="button" id="delete-row-3" class="danger">Supprimer</button></li>
+    </ul>
+    <div id="row-result" class="result"></div>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/clicks.js"></script>
+</body>
+</html>

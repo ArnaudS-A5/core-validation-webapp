@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Frame formulaire</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="frame-page">
+  <form id="frame-form-form" novalidate>
+    <div class="field">
+      <label for="frame-input">Votre prénom</label>
+      <input type="text" id="frame-input" name="firstname">
+    </div>
+    <div class="row">
+      <label><input type="checkbox" id="frame-checkbox"> Recevoir la confirmation</label>
+      <button type="submit" id="frame-submit" class="primary">Valider</button>
+    </div>
+  </form>
+  <div id="frame-form-result" class="result" role="status"></div>
+<script src="../js/jquery-3.7.1.min.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/frame-pages.js"></script>
+</body>
+</html>

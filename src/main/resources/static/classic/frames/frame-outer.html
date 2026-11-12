@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Frame externe</title>
+  <link rel="stylesheet" href="../css/app.css">
+</head>
+<body class="frame-page">
+  <h3 id="frame-outer-title">Frame externe</h3>
+  <div class="row">
+    <button type="button" id="frame-outer-button" class="frame-button" data-result="frame-outer-result" data-message="Bouton de Frame externe cliqué">Cliquer dans Frame externe</button>
+    <span id="frame-outer-result" class="result"></span>
+  </div>
+  <iframe id="inner-frame" name="innerFrame" src="frame-inner.html" title="Frame interne" style="height: 120px;"></iframe>
+<script src="../js/jquery-3.7.1.min.js"></script>
+<script src="../js/common.js"></script>
+<script src="../js/frame-pages.js"></script>
+</body>
+</html>

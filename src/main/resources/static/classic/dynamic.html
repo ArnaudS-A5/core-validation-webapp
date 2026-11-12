@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Asynchrone</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" class="active" aria-current="page" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Asynchrone</h1>
+    <p>Page dédiée à la synchronisation : chargements différés, calques bloquants, éléments ré-rendus, polling, auto-complétion, échecs, requêtes parallèles. Ajoutez <code>?delay=N</code> à l'URL pour imposer une latence.</p>
+  </div>
+  <section class="card" id="section-delayed">
+    <h2>1. Chargement différé</h2>
+    <div class="row">
+      <label for="delay-input">Délai (ms)</label>
+      <input type="number" id="delay-input" value="2000" min="0" max="10000" step="100">
+      <button type="button" id="btn-load-delayed" class="primary">Charger</button>
+      <span id="delayed-spinner" class="spinner" role="status"></span>
+    </div>
+    <div id="delayed-content" class="result" aria-live="polite"></div>
+  </section>
+
+  <section class="card" id="section-blocking">
+    <h2>2. Calque bloquant temporaire</h2>
+    <div class="row">
+      <button type="button" id="btn-blocking">Lancer un traitement bloquant (1,5 s)</button>
+      <button type="button" id="btn-after-blocking">Bouton situé sous le calque</button>
+      <span id="blocking-result" class="result"></span>
+    </div>
+  </section>
+
+  <section class="card" id="section-rerender">
+    <h2>3. Élément ré-rendu (références périmées)</h2>
+    <div class="row">
+      <button type="button" id="btn-rerender">Ré-afficher le bouton cible</button>
+      <span>Rendus : <strong id="rerender-count">1</strong></span>
+      <span>Clics sur la cible : <strong id="rerender-clicks">0</strong></span>
+    </div>
+    <div class="row" id="rerender-zone">
+      <button type="button" id="rerender-target">Bouton cible</button>
+    </div>
+  </section>
+
+  <section class="card" id="section-autocomplete">
+    <h2>4. Auto-complétion (anti-rebond 300 ms)</h2>
+    <div class="autocomplete">
+      <input type="text" id="autocomplete-input" autocomplete="off" placeholder="Fruit (ex. « an »)">
+      <ul id="autocomplete-list" class="hidden" role="listbox"></ul>
+    </div>
+    <div id="autocomplete-result" class="result"></div>
+  </section>
+
+  <section class="card" id="section-polling">
+    <h2>5. Horloge serveur (polling 1 s)</h2>
+    <div class="row">
+      <button type="button" id="btn-start-clock">Démarrer</button>
+      <button type="button" id="btn-stop-clock" disabled>Arrêter</button>
+      <code id="clock-value">—</code>
+    </div>
+  </section>
+
+  <section class="card" id="section-job">
+    <h2>6. Tâche longue avec barre de progression</h2>
+    <div class="row">
+      <label for="job-duration">Durée (ms)</label>
+      <input type="number" id="job-duration" value="4000" min="500" max="60000" step="500">
+      <button type="button" id="btn-start-job">Lancer</button>
+    </div>
+    <div class="progress"><div id="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+    <div class="row"><span id="progress-text">0 %</span><strong id="job-status">Inactif</strong></div>
+  </section>
+
+  <section class="card" id="section-flaky">
+    <h2>7. Service instable (2 échecs puis succès)</h2>
+    <div class="row">
+      <button type="button" id="btn-flaky">Appeler le service</button>
+      <button type="button" id="btn-flaky-new-key">Nouvelle série</button>
+    </div>
+    <div id="flaky-status" class="result"></div>
+  </section>
+
+  <section class="card" id="section-loadmore">
+    <h2>8. Charger la suite (5 articles par clic)</h2>
+    <ul id="load-more-list"></ul>
+    <div class="row">
+      <button type="button" id="btn-load-more">Charger plus</button>
+      <span>Affichés : <strong id="load-more-count">0</strong></span>
+    </div>
+  </section>
+
+  <section class="card" id="section-toast">
+    <h2>9. Notification éphémère</h2>
+    <button type="button" id="btn-toast">Afficher une notification (3 s)</button>
+  </section>
+
+  <section class="card" id="section-status">
+    <h2>10. Codes HTTP</h2>
+    <div class="row">
+      <label for="select-status">Code</label>
+      <select id="select-status">
+        <option value="200">200 OK</option>
+        <option value="400">400 Requête invalide</option>
+        <option value="401">401 Non authentifié</option>
+        <option value="404">404 Introuvable</option>
+        <option value="500">500 Erreur serveur</option>
+        <option value="503">503 Indisponible</option>
+      </select>
+      <button type="button" id="btn-status">Appeler</button>
+    </div>
+    <div id="status-result" class="result"></div>
+  </section>
+
+  <section class="card" id="section-parallel">
+    <h2>11. Requêtes parallèles (0,5 s / 1 s / 1,5 s)</h2>
+    <button type="button" id="btn-parallel">Lancer les trois appels</button>
+    <ul id="parallel-list"></ul>
+    <div id="parallel-done" class="result"></div>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/dynamic.js"></script>
+</body>
+</html>

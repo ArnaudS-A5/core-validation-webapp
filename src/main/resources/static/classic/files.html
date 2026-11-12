@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Fichiers</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" class="active" aria-current="page" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Fichiers</h1>
+    <p>Téléchargements (liens directs, fichier lent, téléchargement déclenché par script) et envois de fichiers (champ visible, champ masqué, zone de dépôt).</p>
+  </div>
+  <section class="card" id="section-downloads">
+    <h2>Téléchargements</h2>
+    <div class="row">
+      <a id="download-txt" class="btn" href="../api/files/download/txt" download>Fichier TXT</a>
+      <a id="download-csv" class="btn" href="../api/files/download/csv" download>Fichier CSV</a>
+      <a id="download-json" class="btn" href="../api/files/download/json" download>Fichier JSON</a>
+      <a id="download-zip" class="btn" href="../api/files/download/zip" download>Archive ZIP</a>
+      <a id="download-bin-1mb" class="btn" href="../api/files/download/bin?size=1048576" download>Binaire 1 Mo</a>
+      <a id="download-slow" class="btn" href="../api/files/download/bin?size=2048&amp;delay=3000" download>Fichier lent (3 s)</a>
+    </div>
+    <div class="row">
+      <button type="button" id="btn-download-ajax" class="primary">Télécharger par script (blob)</button>
+      <span id="download-spinner" class="spinner" role="status"></span>
+      <span id="download-status" class="result"></span>
+    </div>
+  </section>
+
+  <section class="card" id="section-upload">
+    <h2>Envoi de fichier</h2>
+    <div class="field">
+      <label for="upload-input">Fichier à envoyer</label>
+      <input type="file" id="upload-input" name="file">
+    </div>
+    <div class="row">
+      <button type="button" id="btn-upload" class="primary">Envoyer</button>
+      <span id="upload-spinner" class="spinner" role="status"></span>
+    </div>
+    <div class="progress"><div id="upload-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+    <div id="upload-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-upload-hidden">
+    <h2>Champ fichier masqué (bouton personnalisé)</h2>
+    <div class="row">
+      <button type="button" id="btn-choose-file">Choisir un fichier…</button>
+      <input type="file" id="upload-hidden-input" class="hidden" aria-hidden="true">
+      <span id="hidden-file-name" class="hint">Aucun fichier choisi</span>
+    </div>
+    <div id="hidden-upload-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-dropzone">
+    <h2>Zone de dépôt</h2>
+    <div id="drop-zone" class="drop-zone">Déposez un fichier ici</div>
+    <div id="drop-result" class="result" role="status"></div>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/files.js"></script>
+</body>
+</html>

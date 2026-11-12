@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Iframes</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" class="active" aria-current="page" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Iframes</h1>
+    <p>Cinq configurations d'iframes : simple, imbriquée, chargée en différé, sans id ni nom (accès par index) et en <code>srcdoc</code>, plus un formulaire dans une frame.</p>
+  </div>
+  <section class="card" id="section-frame-simple">
+    <h2>1. Iframe simple</h2>
+    <iframe id="frame-simple" name="frameSimple" src="frames/frame-a.html" title="Frame simple"></iframe>
+  </section>
+
+  <section class="card" id="section-frame-nested">
+    <h2>2. Iframe imbriquée (frame dans une frame)</h2>
+    <iframe id="frame-nested" name="frameNested" src="frames/frame-outer.html" title="Frame externe" style="height: 260px;"></iframe>
+  </section>
+
+  <section class="card" id="section-frame-delayed">
+    <h2>3. Iframe chargée en différé</h2>
+    <div class="row">
+      <button type="button" id="btn-load-frame">Charger la frame (après 2 s)</button>
+      <span id="frame-delayed-status" class="result"></span>
+    </div>
+    <div id="frame-delayed-zone"></div>
+  </section>
+
+  <section class="card" id="section-frame-anonymous">
+    <h2>4. Iframe sans id ni nom (accès par index ou par XPath)</h2>
+    <iframe src="frames/frame-anonymous.html" title="Frame anonyme"></iframe>
+  </section>
+
+  <section class="card" id="section-frame-srcdoc">
+    <h2>5. Iframe en srcdoc</h2>
+    <iframe id="frame-srcdoc" title="Frame srcdoc" srcdoc="&lt;body style='font-family:sans-serif'&gt;&lt;p id='srcdoc-text'&gt;Contenu de la frame srcdoc&lt;/p&gt;&lt;button id='srcdoc-button' onclick=&quot;document.getElementById('srcdoc-text').textContent='Bouton srcdoc cliqué'&quot;&gt;Cliquer (srcdoc)&lt;/button&gt;&lt;/body&gt;"></iframe>
+  </section>
+
+  <section class="card" id="section-frame-form">
+    <h2>6. Formulaire dans une iframe</h2>
+    <iframe id="frame-form" name="frameForm" src="frames/frame-form.html" title="Frame formulaire"></iframe>
+  </section>
+
+  <section class="card" id="section-parent">
+    <h2>Retour dans la page parente</h2>
+    <div class="row">
+      <button type="button" id="btn-parent">Bouton de la page parente</button>
+      <span id="parent-result" class="result"></span>
+    </div>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/frames.js"></script>
+</body>
+</html>

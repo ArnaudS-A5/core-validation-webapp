@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Formulaires</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" class="active" aria-current="page" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Formulaires</h1>
+    <p>Saisies, boutons radio, cases à cocher, listes déroulantes (dont une alimentée et une dépendante via appel serveur) et soumission asynchrone avec validation.</p>
+  </div>
+  <form id="demo-form" novalidate>
+    <section class="card" id="section-text">
+      <h2>Saisies</h2>
+      <div class="field">
+        <label for="input-name">Nom</label>
+        <input type="text" id="input-name" name="name">
+        <span id="error-name" class="field-error"></span>
+      </div>
+      <div class="field">
+        <label for="input-email">E-mail</label>
+        <input type="email" id="input-email" name="email">
+        <span id="error-email" class="field-error"></span>
+      </div>
+      <div class="field">
+        <label for="input-number">Quantité</label>
+        <input type="number" id="input-number" name="quantity" min="0" max="100" value="1">
+      </div>
+      <div class="field">
+        <label for="input-date">Date</label>
+        <input type="date" id="input-date" name="date">
+      </div>
+      <div class="field">
+        <label for="input-range">Curseur : <output id="range-value">50</output></label>
+        <input type="range" id="input-range" name="range" min="0" max="100" value="50">
+      </div>
+      <div class="field">
+        <label for="textarea-comment">Commentaire</label>
+        <textarea id="textarea-comment" name="comment"></textarea>
+      </div>
+    </section>
+
+    <section class="card" id="section-radio">
+      <h2>Boutons radio</h2>
+      <div class="row" role="radiogroup" aria-label="Civilité">
+        <label><input type="radio" id="radio-mr" name="civility" value="M"> Monsieur</label>
+        <label><input type="radio" id="radio-mrs" name="civility" value="Mme"> Madame</label>
+        <label><input type="radio" id="radio-other" name="civility" value="Autre"> Autre</label>
+      </div>
+      <h3>Formule (radios personnalisés : l'input est masqué, seule l'étiquette se clique)</h3>
+      <div class="row" role="radiogroup" aria-label="Formule">
+        <label class="custom-radio" id="plan-basic-label"><input type="radio" id="plan-basic" name="plan" value="basic"><span>Basique</span></label>
+        <label class="custom-radio" id="plan-pro-label"><input type="radio" id="plan-pro" name="plan" value="pro"><span>Pro</span></label>
+        <label class="custom-radio" id="plan-premium-label"><input type="radio" id="plan-premium" name="plan" value="premium"><span>Premium</span></label>
+      </div>
+    </section>
+
+    <section class="card" id="section-checkbox">
+      <h2>Cases à cocher</h2>
+      <div class="row">
+        <label><input type="checkbox" id="chk-all"> Tout sélectionner</label>
+      </div>
+      <div class="row">
+        <label><input type="checkbox" id="chk-newsletter" name="options" value="newsletter" class="chk-option"> Newsletter</label>
+        <label><input type="checkbox" id="chk-sms" name="options" value="sms" class="chk-option"> Alertes SMS</label>
+        <label><input type="checkbox" id="chk-terms" name="options" value="terms" class="chk-option"> J'accepte les conditions</label>
+      </div>
+    </section>
+
+    <section class="card" id="section-select">
+      <h2>Listes déroulantes</h2>
+      <div class="field">
+        <label for="select-country">Pays (options chargées par le serveur)</label>
+        <select id="select-country" name="country">
+          <option value="">Chargement…</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="select-city">Ville (dépend du pays)</label>
+        <select id="select-city" name="city" disabled>
+          <option value="">Choisir d'abord un pays</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="select-static">Fréquence (liste statique)</label>
+        <select id="select-static" name="frequency">
+          <option value="">— Choisir —</option>
+          <option value="daily">Quotidienne</option>
+          <option value="weekly">Hebdomadaire</option>
+          <option value="monthly">Mensuelle</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="select-multiple">Centres d'intérêt (sélection multiple)</label>
+        <select id="select-multiple" name="interests" multiple size="5">
+          <optgroup label="Sport">
+            <option value="running">Course à pied</option>
+            <option value="diving">Plongée</option>
+          </optgroup>
+          <optgroup label="Technologie">
+            <option value="java">Java</option>
+            <option value="qa">Automatisation de tests</option>
+            <option value="ai">Intelligence artificielle</option>
+          </optgroup>
+        </select>
+      </div>
+    </section>
+
+    <section class="card" id="section-submit">
+      <h2>Soumission</h2>
+      <div class="row">
+        <button type="submit" id="form-submit" class="primary">Envoyer</button>
+        <button type="reset" id="form-reset">Réinitialiser</button>
+        <span id="form-spinner" class="spinner" role="status"></span>
+      </div>
+      <div id="form-result" class="result" role="status"></div>
+      <pre id="form-received" class="hint"></pre>
+    </section>
+  </form>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/forms.js"></script>
+</body>
+</html>

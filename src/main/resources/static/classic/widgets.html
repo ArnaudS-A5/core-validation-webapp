@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Widgets</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" class="active" aria-current="page" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Widgets</h1>
+    <p>Composants d'interface courants : onglets, accordéon animé, fenêtre modale, menu au survol, liste personnalisée, glisser-déposer, curseur à la souris, Shadow DOM, clavier et zone défilante.</p>
+  </div>
+  <section class="card" id="section-tabs">
+    <h2>Onglets</h2>
+    <div class="tabs" role="tablist">
+      <button type="button" id="tab-1" role="tab" aria-selected="true" aria-controls="panel-1">Onglet 1</button>
+      <button type="button" id="tab-2" role="tab" aria-selected="false" aria-controls="panel-2">Onglet 2</button>
+      <button type="button" id="tab-3" role="tab" aria-selected="false" aria-controls="panel-3">Onglet 3</button>
+    </div>
+    <div id="panel-1" class="tab-panel" role="tabpanel">Contenu du premier onglet.</div>
+    <div id="panel-2" class="tab-panel hidden" role="tabpanel">Contenu du deuxième onglet.</div>
+    <div id="panel-3" class="tab-panel hidden" role="tabpanel">Contenu du troisième onglet.</div>
+  </section>
+
+  <section class="card" id="section-accordion">
+    <h2>Accordéon (animation 300 ms)</h2>
+    <button type="button" id="acc-header-1" class="accordion-header" aria-expanded="false">Section 1</button>
+    <div id="acc-body-1" class="accordion-body">Texte de la section 1.</div>
+    <button type="button" id="acc-header-2" class="accordion-header" aria-expanded="false">Section 2</button>
+    <div id="acc-body-2" class="accordion-body">Texte de la section 2.</div>
+    <button type="button" id="acc-header-3" class="accordion-header" aria-expanded="false">Section 3</button>
+    <div id="acc-body-3" class="accordion-body">Texte de la section 3.</div>
+  </section>
+
+  <section class="card" id="section-modal">
+    <h2>Fenêtre modale</h2>
+    <div class="row">
+      <button type="button" id="btn-open-modal" class="primary">Ouvrir la modale</button>
+      <span id="modal-result" class="result"></span>
+    </div>
+    <div id="modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal">
+        <div class="row" style="justify-content: space-between;">
+          <h2 id="modal-title" style="border: 0; margin: 0;">Saisie dans une modale</h2>
+          <button type="button" id="modal-close" aria-label="Fermer">×</button>
+        </div>
+        <div class="field">
+          <label for="modal-input">Votre réponse</label>
+          <input type="text" id="modal-input">
+        </div>
+        <div class="modal-actions">
+          <button type="button" id="modal-cancel">Annuler</button>
+          <button type="button" id="modal-ok" class="primary">Valider</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="section-menu">
+    <h2>Menu déroulant au survol</h2>
+    <div class="row menu-zone">
+      <div class="menu" id="menu-products">
+        <button type="button" id="menu-products-button">Produits ▾</button>
+        <div class="submenu" id="submenu">
+          <a id="submenu-item-1" href="#section-menu" data-label="Ordinateurs">Ordinateurs</a>
+          <a id="submenu-item-2" href="#section-menu" data-label="Téléphones">Téléphones</a>
+          <a id="submenu-item-3" href="#section-menu" data-label="Accessoires">Accessoires</a>
+        </div>
+      </div>
+      <span id="menu-result" class="result"></span>
+    </div>
+  </section>
+
+  <section class="card" id="section-custom-select">
+    <h2>Liste personnalisée (div + ul, non native)</h2>
+    <div class="row">
+      <div class="custom-select" id="custom-select">
+        <button type="button" id="custom-select-button" aria-haspopup="listbox" aria-expanded="false">Choisir une couleur ▾</button>
+        <ul id="custom-select-list" role="listbox">
+          <li id="custom-option-1" role="option">Rouge</li>
+          <li id="custom-option-2" role="option">Vert</li>
+          <li id="custom-option-3" role="option">Bleu</li>
+        </ul>
+      </div>
+      <span id="custom-select-result" class="result"></span>
+    </div>
+  </section>
+
+  <section class="card" id="section-drag">
+    <h2>Glisser-déposer</h2>
+    <div class="drag-zone">
+      <span id="drag-item" draggable="true">Élément à déplacer</span>
+      <div id="drop-target" class="drop-target">Zone de dépôt</div>
+    </div>
+    <div id="drag-result" class="result"></div>
+    <h3>Curseur à la souris (mousedown / mousemove)</h3>
+    <div id="slider-track" class="slider-track"><div id="slider-handle" class="slider-handle" role="slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0"></div></div>
+    <div>Valeur : <strong id="slider-value">0</strong></div>
+  </section>
+
+  <section class="card" id="section-shadow">
+    <h2>Shadow DOM (ouvert)</h2>
+    <div id="shadow-host"></div>
+  </section>
+
+  <section class="card" id="section-keyboard">
+    <h2>Clavier</h2>
+    <div class="row">
+      <input type="text" id="key-input" placeholder="Tapez une touche">
+      <span id="key-result" class="result"></span>
+    </div>
+  </section>
+
+  <section class="card" id="section-scroll">
+    <h2>Zone défilante</h2>
+    <div id="scroll-box" class="scroll-box">
+      <p>Faites défiler pour atteindre le bouton en bas de la zone.</p>
+      <div class="filler"></div>
+      <button type="button" id="scroll-target">Bouton en bas de zone</button>
+    </div>
+    <div id="scroll-result" class="result"></div>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/widgets.js"></script>
+</body>
+</html>

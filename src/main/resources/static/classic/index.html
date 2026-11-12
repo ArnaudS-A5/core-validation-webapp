@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Accueil (classic)</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" class="active" aria-current="page" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Accueil</h1>
+    <p>Application factice destinée à valider un socle d'automatisation web. Chaque page regroupe une famille d'actions utilisateur.</p>
+    <p id="server-status" class="result">Vérification du serveur…</p>
+  </div>
+
+  <section class="card">
+    <h2>Catalogue des pages</h2>
+    <div class="grid">
+      <a id="card-login" class="btn" href="login.html">Connexion<br><small>formulaire + appel asynchrone</small></a>
+      <a id="card-clicks" class="btn" href="clicks.html">Clics<br><small>boutons, survol, double-clic, overlay</small></a>
+      <a id="card-forms" class="btn" href="forms.html">Formulaires<br><small>radios, cases, listes, saisies</small></a>
+      <a id="card-dynamic" class="btn" href="dynamic.html">Asynchrone<br><small>attentes, polling, échecs, ré-rendu</small></a>
+      <a id="card-tables" class="btn" href="tables.html">Tableaux<br><small>tri, pagination, édition, suppression</small></a>
+      <a id="card-windows" class="btn" href="windows.html">Fenêtres<br><small>pop-up, onglets, alertes</small></a>
+      <a id="card-frames" class="btn" href="frames.html">Iframes<br><small>simples, imbriquées, différées</small></a>
+      <a id="card-files" class="btn" href="files.html">Fichiers<br><small>téléchargements et uploads</small></a>
+      <a id="card-widgets" class="btn" href="widgets.html">Widgets<br><small>onglets, modale, drag &amp; drop, shadow DOM</small></a>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Latence simulée</h2>
+    <p>Chaque page accepte le paramètre <code>?delay=N</code> (en ms) pour imposer une latence à tous ses appels API, par exemple
+      <a id="link-delay-1500" href="dynamic.html?delay=1500">dynamic.html?delay=1500</a>.</p>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/index.js"></script>
+</body>
+</html>

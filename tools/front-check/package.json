@@ -1,0 +1,8 @@
+{
+  "name": "front-check",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Contrôle de fumée du front classic de socle-testapp",
+  "scripts": { "check": "node verify.js" },
+  "dependencies": { "puppeteer-core": "^24.0.0" }
+}

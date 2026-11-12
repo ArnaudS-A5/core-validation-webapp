@@ -31,9 +31,11 @@ class A08FichiersIT extends SmokeTestBase {
     @Order(1)
     void ouverture() throws Exception {
         open("files.html");
+        assertThat(exists("#upload-input")).as("page Fichiers chargée").isTrue();
         Path dir = Files.createTempDirectory("socle-testapp-");
         sample = dir.resolve("sample-upload.txt");
         Files.writeString(sample, "contenu de test pour upload\n", StandardCharsets.UTF_8);
+        assertThat(sample).as("fichier à envoyer prêt").isRegularFile().isNotEmptyFile();
     }
 
     @ParameterizedTest(name = "{0} ({1}, attachment)")

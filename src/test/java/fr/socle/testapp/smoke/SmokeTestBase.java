@@ -35,7 +35,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 abstract class SmokeTestBase {
 
-    protected static final String APP = System.getProperty("app.url", "http://localhost:8080").replaceAll("/+$", "");
+    protected static final String APP = withoutTrailingSlashes(System.getProperty("app.url", "http://localhost:8080"));
     protected static final String BASE = APP + "/classic/";
 
     protected WebDriver d;
@@ -75,6 +75,14 @@ abstract class SmokeTestBase {
 
     protected WebElement inView(String css) {
         return inView($(css));
+    }
+
+    private static String withoutTrailingSlashes(String url) {
+        String result = url.trim();
+        while (result.endsWith("/")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        return result;
     }
 
     protected static void resetApp() throws Exception {

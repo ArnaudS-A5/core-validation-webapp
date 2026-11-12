@@ -13,13 +13,31 @@
 
     <groupId>fr.socle</groupId>
     <artifactId>socle-testapp</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <!-- Version « CI-friendly » : la CI passe -Drevision=1.0.<n° de build> -->
+    <version>${revision}</version>
     <name>socle-testapp</name>
     <description>Application web factice servant de cible de validation au socle d'automatisation</description>
 
     <properties>
+        <revision>1.0.0-SNAPSHOT</revision>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Même version que le Selenium Grid (4.48) -->
+        <selenium.version>4.48.0</selenium.version>
+        <jacoco.version>0.8.16</jacoco.version>
+        <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
+        <flatten-maven-plugin.version>1.9.0</flatten-maven-plugin.version>
+
+        <!-- Permet de ne lancer que le contrôle de fumée : -DskipUnitTests=true -->
+        <skipUnitTests>false</skipUnitTests>
+
+        <!-- Sonar : projet et rapport de couverture JaCoCo -->
+        <sonar.projectKey>fr.socle:socle-testapp</sonar.projectKey>
+        <sonar.projectName>socle-testapp</sonar.projectName>
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+        <!-- Le contrôle de fumée pilote un navigateur : il n'entre pas dans la couverture du code applicatif -->
+        <sonar.coverage.exclusions>**/TestAppApplication.java</sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -28,16 +46,142 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
+        <!-- Tests unitaires : JUnit 5, MockMvc, AssertJ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Contrôle de fumée (profil smoke) : Selenium contre l'application déployée -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <!-- Nom stable du JAR : target/socle-testapp.jar -->
         <finalName>socle-testapp</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.sonarsource.scanner.maven</groupId>
+                    <artifactId>sonar-maven-plugin</artifactId>
+                    <version>${sonar-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+
+            <!-- Remplace ${revision} par la vraie version dans le POM publié -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten-clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Tests unitaires (*Test.java) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skip>${skipUnitTests}</skip>
+                    <excludes>
+                        <exclude>**/smoke/**</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- Couverture de code des tests unitaires -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!--
+            Contrôle de fumée contre une application déjà lancée :
+            mvn -Psmoke -DskipUnitTests=true verify -Dapp.url=http://testapp.home.arpa:8085 -Dgrid.url=http://grid.home.arpa:4444 -Dbrowser=chrome
+            Sans grid.url, un navigateur local est utilisé.
+        -->
+        <profile>
+            <id>smoke</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/smoke/**/*IT.java</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <app.url>${app.url}</app.url>
+                                <grid.url>${grid.url}</grid.url>
+                                <browser>${browser}</browser>
+                            </systemPropertyVariables>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <app.url>http://localhost:8080</app.url>
+                <grid.url/>
+                <browser>chrome</browser>
+            </properties>
+        </profile>
+    </profiles>
 </project>

@@ -1,0 +1,82 @@
+package fr.socle.testapp.smoke;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+
+@DisplayName("Accueil et connexion")
+class A01AccueilEtConnexionIT extends SmokeTestBase {
+
+    // ---------- Accueil ----------
+
+    @Test
+    @Order(1)
+    void racine_propose_le_front_classic() {
+        d.get(APP + "/");
+        assertThat(visible("#front-classic")).as("racine : lien classic").isTrue();
+    }
+
+    @Test
+    @Order(2)
+    void ping_asynchrone_et_data_testid() {
+        open("index.html");
+        assertThat(waitText("#server-status", "Serveur disponible")).as("ping asynchrone").isTrue();
+        assertThat(attr("#nav-clicks", "data-testid")).as("data-testid miroir de id").isEqualTo("nav-clicks");
+    }
+
+    @Test
+    @Order(3)
+    void navigation_par_carte() {
+        click("#card-clicks");
+        assertThat(waitUntil(drv -> drv.getCurrentUrl().endsWith("clicks.html"), 5)).as("navigation vers clicks.html").isTrue();
+    }
+
+    @Test
+    @Order(4)
+    void parametre_delay_de_la_page() {
+        long t0 = System.currentTimeMillis();
+        open("index.html?delay=1200");
+        assertThat(waitText("#server-status", "Serveur disponible")).isTrue();
+        assertThat(System.currentTimeMillis() - t0).as("paramètre ?delay=1200 appliqué").isGreaterThanOrEqualTo(1100);
+    }
+
+    // ---------- Connexion ----------
+
+    @Test
+    @Order(10)
+    void connexion_refusee_401() {
+        open("login.html");
+        type("#login-username", "bob");
+        type("#login-password", "x");
+        click("#login-submit");
+        assertThat(waitText("#login-message", "Identifiants invalides.*401")).as("refus 401").isTrue();
+    }
+
+    @Test
+    @Order(11)
+    void compte_verrouille_423() {
+        clearAndType("#login-username", "locked");
+        click("#login-submit");
+        assertThat(waitText("#login-message", "423")).as("compte verrouillé 423").isTrue();
+    }
+
+    @Test
+    @Order(12)
+    void connexion_reussie_avec_spinner() {
+        clearAndType("#login-username", "test");
+        clearAndType("#login-password", "test");
+        click("#login-submit");
+        assertThat(visible("#login-spinner")).as("spinner pendant l'appel").isTrue();
+        assertThat(waitUntil(drv -> exists("#welcome-panel:not(.hidden)"), 5)).isTrue();
+        assertThat(text("#welcome-message")).as("message de bienvenue").contains("Utilisateur Test");
+    }
+
+    @Test
+    @Order(13)
+    void deconnexion() {
+        click("#logout-button");
+        assertThat(waitVisible("#login-form", 3)).as("déconnexion").isTrue();
+    }
+}

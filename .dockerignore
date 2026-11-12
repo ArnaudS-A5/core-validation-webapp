@@ -1,0 +1,3 @@
+# Seul le JAR construit est envoyé au démon Docker
+*
+!target/socle-testapp.jar

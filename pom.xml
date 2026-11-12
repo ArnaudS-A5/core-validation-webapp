@@ -180,6 +180,7 @@
                                 <grid.url>${grid.url}</grid.url>
                                 <browser>${browser}</browser>
                                 <allure.results.directory>${allure.results.directory}</allure.results.directory>
+                                <smoke.ralenti>${smoke.ralenti}</smoke.ralenti>
                             </systemPropertyVariables>
                         </configuration>
                         <executions>
@@ -197,6 +198,8 @@
                 <app.url>http://localhost:8080</app.url>
                 <grid.url/>
                 <browser>chrome</browser>
+                <!-- Mode observation : pause (ms) après chaque geste, 0 = vitesse normale -->
+                <smoke.ralenti>0</smoke.ralenti>
             </properties>
         </profile>
     </profiles>

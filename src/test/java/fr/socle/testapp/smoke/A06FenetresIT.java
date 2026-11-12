@@ -117,6 +117,49 @@ class A06FenetresIT extends SmokeTestBase {
 
     @Test
     @Order(7)
+    void deux_pop_ups_par_nom_et_par_titre() {
+        Set<String> before = new HashSet<>(d.getWindowHandles());
+        click("#btn-open-two-popups");
+        assertThat(waitUntil(drv -> drv.getWindowHandles().size() == before.size() + 2, 5)).as("deux fenêtres ouvertes").isTrue();
+
+        // Bascule par nom de fenêtre (window.name donné à window.open)
+        d.switchTo().window("popupA");
+        assertThat(waitText("#popup-origin", "^popup-A$")).as("pop-up A trouvé par son nom").isTrue();
+        String handleA = d.getWindowHandle();
+
+        // Bascule par titre de page
+        String handleB = null;
+        for (String handle : d.getWindowHandles()) {
+            if (!before.contains(handle) && d.switchTo().window(handle).getTitle().endsWith("popup-B")) {
+                handleB = handle;
+                break;
+            }
+        }
+        assertThat(handleB).as("pop-up B trouvé par son titre").isNotNull();
+        assertThat(textContent("#popup-origin")).as("pop-up B").isEqualTo("popup-B");
+
+        d.close();
+        d.switchTo().window(handleA).close();
+        d.switchTo().window(main);
+        assertThat(d.getWindowHandles()).as("retour à la seule fenêtre principale").hasSize(before.size());
+    }
+
+    @Test
+    @Order(8)
+    void pop_up_differe_de_2_s() {
+        Set<String> before = new HashSet<>(d.getWindowHandles());
+        click("#btn-open-delayed");
+        assertThat(waitText("#popup-open-result", "Ouverture dans 2 secondes")).isTrue();
+        assertThat(d.getWindowHandles()).as("pas encore de pop-up juste après le clic").hasSize(before.size());
+        assertThat(waitUntil(drv -> drv.getWindowHandles().size() > before.size(), 5)).as("pop-up ouvert après 2 s").isTrue();
+        switchToNewWindow(before);
+        assertThat(waitText("#popup-origin", "^popup-differe$")).as("pop-up différé").isTrue();
+        d.close();
+        d.switchTo().window(main);
+    }
+
+    @Test
+    @Order(9)
     void redirection_differee() {
         click("#btn-redirect");
         assertThat(waitUntil(drv -> drv.getCurrentUrl().contains("popup.html?from=redirection"), 4))

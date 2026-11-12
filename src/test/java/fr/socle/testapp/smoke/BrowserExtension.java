@@ -18,12 +18,14 @@ import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.remote.AbstractDriverOptions;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.events.EventFiringDecorator;
 
 /**
  * Une seule session navigateur pour tout le contrôle de fumée, fermée à la fin de l'exécution.
  * <ul>
  *   <li>{@code browser} : chrome (défaut), firefox ou edge ;</li>
- *   <li>{@code grid.url} : URL du Selenium Grid ; vide = navigateur local (sans tête par défaut, {@code -Dheadless=false} pour le voir).</li>
+ *   <li>{@code grid.url} : URL du Selenium Grid ; vide = navigateur local (sans tête par défaut, {@code -Dheadless=false} pour le voir) ;</li>
+ *   <li>{@code smoke.ralenti} : pause en ms après chaque geste, pour suivre le déroulé à l'écran (0 par défaut).</li>
  * </ul>
  */
 public class BrowserExtension implements BeforeAllCallback {
@@ -107,6 +109,11 @@ public class BrowserExtension implements BeforeAllCallback {
         }
         created.manage().window().setSize(new Dimension(1440, 900));
         created.manage().timeouts().scriptTimeout(Duration.ofSeconds(30));
+
+        int ralenti = Integer.getInteger("smoke.ralenti", 0);
+        if (ralenti > 0) {
+            created = new EventFiringDecorator<>(new ObservationListener(ralenti)).decorate(created);
+        }
         return created;
     }
 }

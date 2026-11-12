@@ -15,6 +15,11 @@ pipeline {
         githubPush()
     }
 
+    parameters {
+        string(name: 'RALENTI_MS', defaultValue: '0',
+               description: 'Mode observation du contrôle de fumée : pause en ms après chaque geste (ex. 800) pour suivre le déroulé dans le Grid. 0 = vitesse normale.')
+    }
+
     tools {
         jdk 'jdk21'
         maven 'maven-3.9'
@@ -110,7 +115,8 @@ pipeline {
                                         rm -rf target/failsafe-reports target/allure-results-${browser}
                                         \$MVN -Psmoke -DskipUnitTests=true -Djacoco.skip=true verify \
                                             -Dbrowser=${browser} -Dapp.url=\$APP_URL -Dgrid.url=\$GRID_URL \
-                                            -Dallure.results.directory=\$WORKSPACE/target/allure-results-${browser}
+                                            -Dallure.results.directory=\$WORKSPACE/target/allure-results-${browser} \
+                                            -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'}
                                     """
                                 }
                                 // Rapports préfixés par le navigateur pour les distinguer dans Jenkins

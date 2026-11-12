@@ -49,13 +49,18 @@
     $('th.sortable[data-sort="' + state.sort + '"]').attr('aria-sort', attr);
   }
 
+  // Numéro de la dernière requête émise : les réponses des requêtes précédentes sont ignorées
+  var loadSeq = 0;
+
   function load() {
+    var seq = ++loadSeq;
     $('#items-body').addClass('loading');
     $('#table-status').text('Chargement…');
     var query = 'items?page=' + state.page + '&size=' + state.size + '&sort=' + state.sort + '&dir=' + state.dir
       + '&q=' + encodeURIComponent(state.q);
     return App.api('GET', query)
       .done(function (data) {
+        if (seq !== loadSeq) { return; }
         state.totalPages = data.totalPages;
         if (state.page >= data.totalPages) {
           state.page = data.totalPages - 1;
@@ -70,9 +75,11 @@
         updateSelection();
       })
       .fail(function (jqXHR) {
+        if (seq !== loadSeq) { return; }
         $('#table-status').text(App.errorMessage(jqXHR));
       })
       .always(function () {
+        if (seq !== loadSeq) { return; }
         $('#items-body').removeClass('loading');
       });
   }

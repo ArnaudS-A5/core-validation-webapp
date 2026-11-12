@@ -165,7 +165,7 @@ async function visible(page, sel) {
     await page.click('#page-next'); await page.waitForFunction(() => document.querySelector('#items-body tr td:nth-child(3)').textContent === 'Article 047', { timeout: 5000 }); check('page suivante', true);
     await page.click('#page-link-6'); await page.waitForFunction(() => document.querySelectorAll('#items-body tr').length === 7, { timeout: 5000 }); check('dernière page = 7 lignes', true);
     await page.type('#table-search', 'Jardin'); await page.click('#btn-search'); await waitText(page, '#table-status', /11 résultat/); check('recherche « Jardin » = 11', true);
-    await page.click('#page-link-1'); await page.select('#page-size', '5'); await waitText(page, '#table-status', /11 résultat/); await page.waitForFunction(() => document.querySelectorAll('#items-body tr').length === 5, { timeout: 5000 }); check('taille de page 5', true);
+    await page.click('#page-link-1'); await page.waitForFunction(() => !document.querySelector('#items-body').classList.contains('loading'), { timeout: 5000 }); await page.select('#page-size', '5'); await waitText(page, '#table-status', /11 résultat/); await page.waitForFunction(() => document.querySelectorAll('#items-body tr').length === 5, { timeout: 5000 }); check('taille de page 5', true);
     // sélection + suppression groupée
     const firstIds = await page.$$eval('#items-body tr', (r) => r.map((x) => x.id)); await page.click('#' + firstIds[0].replace('row-', 'row-check-')); await page.click('#' + firstIds[1].replace('row-', 'row-check-'));
     check('compteur de sélection', await text(page, '#selection-count') === '2 sélectionné(s)');

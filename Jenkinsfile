@@ -104,10 +104,13 @@ pipeline {
                         for (browser in ['chrome', 'firefox', 'edge']) {
                             stage("Fumée ${browser}") {
                                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                    // jacoco.skip : la couverture ne concerne que les tests unitaires (étape 1) ;
+                                    // ici les tests pilotent un navigateur contre l'application déployée.
                                     sh """
-                                        rm -rf target/failsafe-reports
+                                        rm -rf target/failsafe-reports target/allure-results-${browser}
                                         \$MVN -Psmoke -DskipUnitTests=true -Djacoco.skip=true verify \
-                                            -Dbrowser=${browser} -Dapp.url=\$APP_URL -Dgrid.url=\$GRID_URL
+                                            -Dbrowser=${browser} -Dapp.url=\$APP_URL -Dgrid.url=\$GRID_URL \
+                                            -Dallure.results.directory=\$WORKSPACE/target/allure-results-${browser}
                                     """
                                 }
                                 // Rapports préfixés par le navigateur pour les distinguer dans Jenkins
@@ -126,6 +129,11 @@ pipeline {
             post {
                 always {
                     junit allowEmptyResults: true, testResults: 'target/smoke-*/*.xml'
+                    // Rapport HTML Allure (plugin Jenkins Allure + outil « allure » déclaré dans Tools)
+                    allure includeProperties: false, jdk: '', results: [
+                            [path: 'target/allure-results-chrome'],
+                            [path: 'target/allure-results-firefox'],
+                            [path: 'target/allure-results-edge']]
                 }
             }
         }

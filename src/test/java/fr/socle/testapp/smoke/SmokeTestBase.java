@@ -22,6 +22,7 @@ import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -29,7 +30,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  * Socle commun du contrôle de fumée : une page par classe, des tests ordonnés qui s'enchaînent,
  * l'application remise à zéro ({@code POST /api/admin/reset}) au début de chaque classe.
  */
-@ExtendWith(BrowserExtension.class)
+@ExtendWith({BrowserExtension.class, AllureSupport.class})
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 abstract class SmokeTestBase {
@@ -51,10 +52,29 @@ abstract class SmokeTestBase {
         }
         List<String> handles = new ArrayList<>(d.getWindowHandles());
         for (int i = 1; i < handles.size(); i++) {
-            d.switchTo().window(handles.get(i)).close();
+            try {
+                d.switchTo().window(handles.get(i));
+                System.out.println("[fumée] fenêtre restée ouverte avant " + getClass().getSimpleName() + " : " + d.getCurrentUrl());
+                d.close();
+            } catch (Exception e) {
+                System.out.println("[fumée] fermeture impossible (" + e.getClass().getSimpleName() + "), fenêtre ignorée");
+            }
         }
         d.switchTo().window(handles.get(0));
         d.switchTo().defaultContent();
+    }
+
+    /**
+     * Amène l'élément au centre de la zone visible. Nécessaire avant les actions souris
+     * et avant d'entrer dans une iframe : Firefox ne fait pas défiler la page seul dans ces cas.
+     */
+    protected WebElement inView(WebElement element) {
+        js("arguments[0].scrollIntoView({ block: 'center', inline: 'center' })", element);
+        return element;
+    }
+
+    protected WebElement inView(String css) {
+        return inView($(css));
     }
 
     protected static void resetApp() throws Exception {
@@ -167,6 +187,30 @@ abstract class SmokeTestBase {
         if (!done) {
             $(css).click(); // relance pour obtenir l'erreur réelle
         }
+    }
+
+    /**
+     * Geste humain sur un curseur : saisir la poignée et la déplacer jusqu'à ce que la valeur affichée
+     * atteigne la cible, en avançant à grands pas puis pas à pas à l'approche, puis relâcher.
+     *
+     * @return la valeur affichée au relâchement
+     */
+    protected int dragSliderUntilDisplayed(String handleCss, String displayedValueCss, int target) {
+        new Actions(d).clickAndHold(inView(handleCss)).perform();
+        try {
+            for (int i = 0; i < 300; i++) {
+                int current = Integer.parseInt(textContent(displayedValueCss));
+                if (current == target) {
+                    break;
+                }
+                int gap = target - current;
+                int step = Math.abs(gap) > 10 ? 15 : Math.abs(gap) > 3 ? 4 : 1;
+                new Actions(d).moveByOffset(Integer.signum(gap) * step, 0).perform();
+            }
+        } finally {
+            new Actions(d).release().perform();
+        }
+        return Integer.parseInt(textContent(displayedValueCss));
     }
 
     protected void type(String css, String value) {

@@ -53,7 +53,7 @@ class A09WidgetsIT extends SmokeTestBase {
     @Test
     @Order(4)
     void sous_menu_au_survol() {
-        new Actions(d).moveToElement($("#menu-products-button")).perform();
+        new Actions(d).moveToElement(inView("#menu-products-button")).perform();
         assertThat(waitVisible("#submenu", 2)).as("sous-menu au survol").isTrue();
         click("#submenu-item-2");
         assertThat(waitText("#menu-result", "Téléphones")).as("choix du sous-menu").isTrue();
@@ -70,9 +70,10 @@ class A09WidgetsIT extends SmokeTestBase {
     @Test
     @Order(6)
     void curseur_a_la_souris() {
-        new Actions(d).clickAndHold($("#slider-handle")).moveByOffset(150, 0).release().perform();
-        int value = Integer.parseInt(text("#slider-value"));
-        assertThat(value).as("curseur souris ≈ 50").isBetween(45, 55);
+        int target = 50;
+        int reached = dragSliderUntilDisplayed("#slider-handle", "#slider-value", target);
+        assertThat(reached).as("curseur glissé jusqu'à la valeur affichée %d", target).isEqualTo(target);
+        assertThat(attr("#slider-handle", "aria-valuenow")).as("valeur accessible du curseur").isEqualTo(String.valueOf(target));
     }
 
     @Test
@@ -108,7 +109,7 @@ class A09WidgetsIT extends SmokeTestBase {
     @Test
     @Order(10)
     void glisser_deposer_html5() {
-        WebElement item = $("#drag-item");
+        WebElement item = inView("#drag-item");
         WebElement target = $("#drop-target");
         new Actions(d).dragAndDrop(item, target).perform();
         boolean viaActions = waitText("#drag-result", "déposé", 3);

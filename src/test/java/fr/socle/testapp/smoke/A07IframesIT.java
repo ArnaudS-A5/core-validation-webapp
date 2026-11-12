@@ -2,21 +2,16 @@ package fr.socle.testapp.smoke;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.Duration;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
 @DisplayName("Iframes")
 class A07IframesIT extends SmokeTestBase {
 
     private void frame(String css) {
-        d.switchTo().frame($(css));
+        d.switchTo().frame(inView(css));
     }
 
     @AfterEach
@@ -50,8 +45,8 @@ class A07IframesIT extends SmokeTestBase {
     void frame_differee() {
         assertThat(exists("#frame-delayed")).as("frame différée absente au départ").isFalse();
         click("#btn-load-frame");
-        new WebDriverWait(d, Duration.ofSeconds(4))
-                .until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.cssSelector("#frame-delayed")));
+        assertThat(waitUntil(drv -> exists("#frame-delayed"), 4)).as("frame différée insérée").isTrue();
+        frame("#frame-delayed");
         assertThat(waitUntil(drv -> exists("#frame-delayed-button"), 4)).isTrue();
         click("#frame-delayed-button");
         assertThat(waitText("#frame-delayed-result", "cliqué")).as("frame différée").isTrue();
@@ -60,7 +55,7 @@ class A07IframesIT extends SmokeTestBase {
     @Test
     @Order(4)
     void frame_sans_id_par_index() {
-        d.switchTo().frame($$("iframe").get(3));
+        d.switchTo().frame(inView($$("iframe").get(3)));
         click("#frame-anonymous-button");
         assertThat(waitText("#frame-anonymous-result", "cliqué")).as("frame anonyme par index").isTrue();
     }

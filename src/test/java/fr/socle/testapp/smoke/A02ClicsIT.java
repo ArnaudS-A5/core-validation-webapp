@@ -33,16 +33,16 @@ class A02ClicsIT extends SmokeTestBase {
     @Test
     @Order(3)
     void double_clic_et_clic_droit() {
-        new Actions(d).doubleClick($("#btn-double-click")).perform();
+        new Actions(d).doubleClick(inView("#btn-double-click")).perform();
         assertThat(waitText("#double-click-result", "Double-clic")).as("double-clic").isTrue();
-        new Actions(d).contextClick($("#btn-right-click")).perform();
+        new Actions(d).contextClick(inView("#btn-right-click")).perform();
         assertThat(waitText("#right-click-result", "Clic droit")).as("clic droit").isTrue();
     }
 
     @Test
     @Order(4)
     void survol() {
-        new Actions(d).moveToElement($("#hover-target")).perform();
+        new Actions(d).moveToElement(inView("#hover-target")).perform();
         assertThat(waitVisible("#hover-tooltip", 2)).as("info-bulle au survol").isTrue();
         new Actions(d).moveToLocation(5, 5).perform();
         assertThat(waitUntil(drv -> !visible("#hover-tooltip"), 2)).as("info-bulle masquée").isTrue();

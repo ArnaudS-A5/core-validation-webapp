@@ -28,6 +28,9 @@
         <jacoco.version>0.8.16</jacoco.version>
         <sonar-maven-plugin.version>5.8.0.7211</sonar-maven-plugin.version>
         <flatten-maven-plugin.version>1.9.0</flatten-maven-plugin.version>
+        <allure.version>2.35.6</allure.version>
+        <!-- Résultats Allure du contrôle de fumée (la CI en utilise un par navigateur) -->
+        <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
 
         <!-- Permet de ne lancer que le contrôle de fumée : -DskipUnitTests=true -->
         <skipUnitTests>false</skipUnitTests>
@@ -58,6 +61,14 @@
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Rapport HTML Allure du contrôle de fumée -->
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-junit5</artifactId>
+            <version>${allure.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -113,6 +124,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <skip>${skipUnitTests}</skip>
+                    <systemPropertyVariables>
+                        <!-- Résultats Allure des tests unitaires à part (non publiés) -->
+                        <allure.results.directory>${project.build.directory}/allure-results-unit</allure.results.directory>
+                    </systemPropertyVariables>
                     <excludes>
                         <exclude>**/smoke/**</exclude>
                     </excludes>
@@ -164,6 +179,7 @@
                                 <app.url>${app.url}</app.url>
                                 <grid.url>${grid.url}</grid.url>
                                 <browser>${browser}</browser>
+                                <allure.results.directory>${allure.results.directory}</allure.results.directory>
                             </systemPropertyVariables>
                         </configuration>
                         <executions>

@@ -10,7 +10,8 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import fr.socle.testapp.service.LatencyService;
+import fr.socle.testapp.service.Espace;
+import fr.socle.testapp.service.Latency;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,12 +32,6 @@ public class FileController {
 
     private static final int MAX_BIN_SIZE = 50 * 1024 * 1024;
 
-    private final LatencyService latency;
-
-    public FileController(LatencyService latency) {
-        this.latency = latency;
-    }
-
     /**
      * Télécharge un fichier généré. Paramètres optionnels : {@code delay} (ms avant la réponse),
      * {@code size} (octets, uniquement pour le type « bin »).
@@ -45,7 +40,7 @@ public class FileController {
     public ResponseEntity<byte[]> download(@PathVariable String kind,
                                            @RequestParam(defaultValue = "0") int delay,
                                            @RequestParam(defaultValue = "1024") int size) throws IOException {
-        latency.sleep(delay);
+        Latency.pause(delay);
 
         String filename;
         MediaType mediaType;
@@ -98,9 +93,10 @@ public class FileController {
     /** Reçoit un fichier (champ multipart « file ») et renvoie son nom, sa taille et son empreinte SHA-256. */
     @PostMapping("/upload")
     public ResponseEntity<Map<String, Object>> upload(@RequestParam("file") MultipartFile file,
-                                                      @RequestParam(required = false) Integer delay)
+                                                      @RequestParam(required = false) Integer delay,
+                                                      Espace espace)
             throws IOException, NoSuchAlgorithmException {
-        latency.simulate(delay);
+        espace.latency().simulate(delay);
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Json.of("error", "Fichier vide ou absent"));
         }

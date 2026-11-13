@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.TestInstance;
@@ -43,7 +44,8 @@ abstract class SmokeTestBase {
 
     @BeforeAll
     void prepareBrowser() throws Exception {
-        d = BrowserExtension.driver();
+        // Navigateur emprunté au groupe de sessions (classes exécutées en parallèle), dans son propre espace de données
+        d = BrowserExtension.borrow();
         resetApp();
         // Repart d'une seule fenêtre, hors de toute iframe et sans alerte ouverte
         try {
@@ -71,6 +73,11 @@ abstract class SmokeTestBase {
         d.switchTo().defaultContent();
     }
 
+    @AfterAll
+    void releaseBrowser() {
+        BrowserExtension.release(d);
+    }
+
     /**
      * Amène l'élément au centre de la zone visible. Nécessaire avant les actions souris
      * et avant d'entrer dans une iframe : Firefox ne fait pas défiler la page seul dans ces cas.
@@ -92,9 +99,12 @@ abstract class SmokeTestBase {
         return result;
     }
 
-    protected static void resetApp() throws Exception {
+    /** Remet à zéro l'espace de données de ce navigateur uniquement (les autres sessions ne sont pas touchées). */
+    protected void resetApp() throws Exception {
         HttpResponse<String> response = HttpClient.newHttpClient().send(
-                HttpRequest.newBuilder(URI.create(APP + "/api/admin/reset")).POST(HttpRequest.BodyPublishers.noBody()).build(),
+                HttpRequest.newBuilder(URI.create(APP + "/api/admin/reset"))
+                        .header("Cookie", BrowserExtension.ESPACE_COOKIE + "=" + BrowserExtension.espace(d))
+                        .POST(HttpRequest.BodyPublishers.noBody()).build(),
                 HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() != 200) {
             throw new IllegalStateException("Remise à zéro impossible : HTTP " + response.statusCode());

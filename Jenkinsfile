@@ -31,6 +31,8 @@ pipeline {
     parameters {
         string(name: 'RALENTI_MS', defaultValue: '0',
                description: 'Mode observation du contrôle de fumée : pause en ms après chaque geste (ex. 800) pour suivre le déroulé dans le Grid. 0 = vitesse normale.')
+        string(name: 'SESSIONS_PAR_NAVIGATEUR', defaultValue: 'auto',
+               description: 'Nombre de navigateurs ouverts en parallèle pour chacun de Chrome, Firefox et Edge. « auto » = nœuds libres du Grid ÷ 3 (au moins 1).')
     }
 
     tools {
@@ -136,16 +138,34 @@ pipeline {
         stage('Contrôle de fumée') {
             steps {
                 script {
-                    // Navigateurs l'un après l'autre : les tests modifient les données de l'application
-                    for (browser in ['chrome', 'firefox', 'edge']) {
-                        stage("Fumée ${browser}") {
+                    // Les trois navigateurs en parallèle ; chacun répartit ses pages sur plusieurs sessions.
+                    // Chaque session travaille dans son propre espace de données de l'application : aucune interférence.
+                    def navigateurs = ['chrome', 'firefox', 'edge']
+                    int sessions
+                    String demande = (params.SESSIONS_PAR_NAVIGATEUR ?: 'auto').trim()
+                    if (demande.isInteger()) {
+                        sessions = Math.max(1, demande.toInteger())
+                    } else {
+                        int libres = sh(returnStdout: true, script: '''
+                            curl -fsS "$GRID_URL/status" | python3 -c "import json, sys; v = json.load(sys.stdin)['value']; print(sum(max(0, n.get('maxSessions', 1) - sum(1 for s in n['slots'] if s.get('session'))) for n in v['nodes'] if n.get('availability') == 'UP'))"
+                        ''').trim().toInteger()
+                        sessions = Math.max(1, libres.intdiv(navigateurs.size()))
+                        echo "Nœuds libres sur le Grid : ${libres}"
+                    }
+                    echo "Sessions par navigateur : ${sessions}"
+
+                    def branches = [:]
+                    for (n in navigateurs) {
+                        def browser = n
+                        branches["Fumée ${browser}"] = {
                             catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
                                 // Exécution seule des tests de fumée déjà compilés (étape 1) : ni compilation,
                                 // ni fabrication du JAR, ni couverture. Rapports propres au navigateur
                                 // (failsafe-reports-<navigateur>, allure-results-<navigateur>).
                                 sh "rm -rf target/failsafe-reports-${browser} target/failsafe-summary-${browser}.xml target/allure-results-${browser}"
                                 mvn("-Psmoke failsafe:integration-test failsafe:verify" +
-                                    " -Dbrowser=${browser} -Dapp.url=${env.APP_URL} -Dgrid.url=${env.GRID_URL}" +
+                                    " -Dbrowser=${browser} -Dsmoke.sessions=${sessions}" +
+                                    " -Dapp.url=${env.APP_URL} -Dgrid.url=${env.GRID_URL}" +
                                     " -Dallure.results.directory=${env.WORKSPACE}/target/allure-results-${browser}" +
                                     " -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'} -Dapp.expectedVersion=${env.VERSION}")
                             }
@@ -158,6 +178,7 @@ pipeline {
                             """
                         }
                     }
+                    parallel branches
                 }
             }
             post {

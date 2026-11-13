@@ -8,7 +8,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import fr.socle.testapp.service.LatencyService;
+import fr.socle.testapp.service.Espace;
+import fr.socle.testapp.service.Latency;
 import fr.socle.testapp.service.ScenarioState;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,23 +51,17 @@ public class ApiController {
             "Abricot", "Ananas", "Banane", "Cerise", "Citron", "Clémentine", "Fraise", "Framboise",
             "Kiwi", "Mangue", "Melon", "Orange", "Pamplemousse", "Pêche", "Poire", "Pomme", "Prune", "Raisin");
 
-    private final LatencyService latency;
-    private final ScenarioState state;
-
-    public ApiController(LatencyService latency, ScenarioState state) {
-        this.latency = latency;
-        this.state = state;
-    }
-
     @GetMapping("/ping")
-    public Map<String, Object> ping(@RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+    public Map<String, Object> ping(@RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         return Json.of("status", "ok", "serverTime", Instant.now().toString());
     }
 
     @GetMapping("/clock")
-    public Map<String, Object> clock(@RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+    public Map<String, Object> clock(@RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         Instant now = Instant.now();
         return Json.of("time", now.toString(), "epochMs", now.toEpochMilli());
     }
@@ -74,15 +69,16 @@ public class ApiController {
     /** Répond après exactement {@code delay} ms (2000 par défaut). */
     @GetMapping("/slow")
     public Map<String, Object> slow(@RequestParam(defaultValue = "2000") int delay) {
-        latency.sleep(delay);
+        Latency.pause(delay);
         return Json.of("message", "Réponse reçue après " + delay + " ms", "delayMs", delay);
     }
 
     /** Identifiants valides : test / test. Compte verrouillé : locked (HTTP 423). */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest request,
-                                                      @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+                                                      @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         if ("locked".equals(request.username())) {
             return ResponseEntity.status(HttpStatus.LOCKED).body(Json.of("error", "Compte verrouillé"));
         }
@@ -94,8 +90,9 @@ public class ApiController {
     }
 
     @GetMapping("/countries")
-    public List<Map<String, Object>> countries(@RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+    public List<Map<String, Object>> countries(@RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         List<Map<String, Object>> result = new ArrayList<>();
         COUNTRY_NAMES.forEach((code, name) -> result.add(Json.of("code", code, "name", name)));
         return result;
@@ -103,8 +100,9 @@ public class ApiController {
 
     @GetMapping("/countries/{code}/cities")
     public ResponseEntity<List<String>> cities(@PathVariable String code,
-                                               @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+                                               @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         List<String> cities = CITIES.get(code.toUpperCase(Locale.ROOT));
         if (cities == null) {
             return ResponseEntity.notFound().build();
@@ -115,8 +113,9 @@ public class ApiController {
     /** Auto-complétion : suggestions contenant la saisie (insensible à la casse). */
     @GetMapping("/search")
     public Map<String, Object> search(@RequestParam(defaultValue = "") String q,
-                                      @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+                                      @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         String needle = q.trim().toLowerCase(Locale.ROOT);
         List<String> results = new ArrayList<>();
         if (!needle.isEmpty()) {
@@ -133,9 +132,10 @@ public class ApiController {
     @GetMapping("/flaky")
     public ResponseEntity<Map<String, Object>> flaky(@RequestParam(defaultValue = "default") String key,
                                                       @RequestParam(defaultValue = "2") int failures,
-                                                      @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
-        int attempt = state.nextAttempt(key);
+                                                      @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
+        int attempt = espace.scenarios().nextAttempt(key);
         if (attempt <= failures) {
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                     .body(Json.of("error", "Service temporairement indisponible", "attempt", attempt));
@@ -146,8 +146,9 @@ public class ApiController {
     /** Répond avec le code HTTP demandé (200 à 599). */
     @GetMapping("/status/{code}")
     public ResponseEntity<Map<String, Object>> status(@PathVariable int code,
-                                                      @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+                                                      @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         if (code < 200 || code > 599) {
             return ResponseEntity.badRequest().body(Json.of("error", "Code HTTP hors plage 200-599"));
         }
@@ -157,8 +158,9 @@ public class ApiController {
     /** Validation côté serveur : « name » obligatoire, « email » doit contenir « @ ». */
     @PostMapping("/forms/submit")
     public ResponseEntity<Map<String, Object>> submit(@RequestBody Map<String, Object> payload,
-                                                      @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+                                                      @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         Map<String, String> errors = new LinkedHashMap<>();
         if (text(payload.get("name")).isBlank()) {
             errors.put("name", "Le nom est obligatoire");
@@ -175,14 +177,14 @@ public class ApiController {
 
     /** Démarre une tâche longue ; sa progression se consulte via GET /api/jobs/{id}. */
     @PostMapping("/jobs")
-    public Map<String, Object> startJob(@RequestParam(defaultValue = "5000") int duration) {
+    public Map<String, Object> startJob(@RequestParam(defaultValue = "5000") int duration, Espace espace) {
         int bounded = Math.max(500, Math.min(duration, 60_000));
-        return Json.of("jobId", state.startJob(bounded), "durationMs", bounded);
+        return Json.of("jobId", espace.scenarios().startJob(bounded), "durationMs", bounded);
     }
 
     @GetMapping("/jobs/{id}")
-    public ResponseEntity<Map<String, Object>> job(@PathVariable String id) {
-        ScenarioState.Job job = state.job(id);
+    public ResponseEntity<Map<String, Object>> job(@PathVariable String id, Espace espace) {
+        ScenarioState.Job job = espace.scenarios().job(id);
         if (job == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Json.of("error", "Tâche inconnue"));
         }

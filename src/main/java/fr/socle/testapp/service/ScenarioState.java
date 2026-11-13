@@ -5,12 +5,10 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.stereotype.Component;
-
 /**
  * État en mémoire des scénarios (compteurs d'échecs, tâches longues). Réinitialisable via /api/admin/reset.
+ * Une instance par espace de données ({@link Espace}).
  */
-@Component
 public class ScenarioState {
 
     public record Job(long startMs, int durationMs) {

@@ -55,6 +55,7 @@ Tout est embarqué dans le JAR, y compris jQuery 3.7.1 (`classic/js/jquery-3.7.1
 * **Par page** : `/classic/dynamic.html?delay=1500` impose 1500 ms à tous les appels API de la page.
 * **À chaud** : `PUT /api/admin/settings` avec `{"defaultDelayMs": 800, "jitterMs": 400}` ; `GET /api/admin/settings` pour lire.
 * **Remise à zéro** : `POST /api/admin/reset` (articles, compteurs d'échecs, tâches) — à appeler en début de scénario pour des tests reproductibles.
+* **Espaces de données isolés** (exécution en parallèle) : avec le cookie `testapp-espace=<identifiant>` (lettres, chiffres, `-`, `_`, 64 caractères au plus), une session travaille dans son propre espace : articles, compteurs, tâches et latence. `POST /api/admin/reset` et `PUT /api/admin/settings` ne touchent alors que cet espace. Sans cookie : espace commun. Le cookie étant renvoyé par le navigateur à chaque appel, aucune page n'a besoin d'être modifiée. Un espace inactif depuis 1 heure est supprimé.
 
 ## API
 
@@ -74,7 +75,8 @@ Tout est embarqué dans le JAR, y compris jQuery 3.7.1 (`classic/js/jquery-3.7.1
 | `GET /api/files/download/{txt,csv,json,zip,bin}` | Téléchargements (`delay`, `size` pour `bin`) |
 | `POST /api/files/upload` | Champ multipart `file` → nom, taille, SHA-256 |
 | `GET /api/stream/events?count=N&interval=ms` | Flux SSE : N événements `message` puis un événement `end` |
-| `GET/PUT /api/admin/settings`, `POST /api/admin/reset` | Pilotage |
+| `GET/PUT /api/admin/settings`, `POST /api/admin/reset` | Pilotage (limité à l'espace de l'appelant) |
+| `GET /api/admin/espace` | Espace de l'appelant et nombre d'espaces isolés actifs |
 
 ## Structure
 

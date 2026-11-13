@@ -9,24 +9,23 @@ class ServicesTest {
 
     @Test
     void latence_bornee_et_configurable() {
-        LatencyService latency = new LatencyService(0, 0);
+        Latency latency = new Latency(0, 0);
         latency.configure(-10, 99_999_999);
-        assertThat(latency.snapshot()).containsEntry("defaultDelayMs", 0).containsEntry("jitterMs", LatencyService.MAX_DELAY_MS);
+        assertThat(latency.snapshot()).containsEntry("defaultDelayMs", 0).containsEntry("jitterMs", Latency.MAX_DELAY_MS);
         latency.configure(null, null);
         assertThat(latency.snapshot()).containsEntry("defaultDelayMs", 0);
         latency.configure(1, 1);
         long t0 = System.nanoTime();
         latency.simulate(null);
         latency.simulate(0);
-        latency.sleep(-5);
+        Latency.pause(-5);
         assertThat(System.nanoTime() - t0).isLessThan(2_000_000_000L);
     }
 
     @Test
     void latence_interrompue_conserve_le_drapeau() {
-        LatencyService latency = new LatencyService(0, 0);
         Thread.currentThread().interrupt();
-        latency.sleep(50);
+        Latency.pause(50);
         assertThat(Thread.interrupted()).isTrue();
     }
 

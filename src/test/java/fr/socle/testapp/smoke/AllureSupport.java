@@ -72,7 +72,8 @@ public class AllureSupport implements BeforeAllCallback, BeforeEachCallback, Aft
         if (context.getExecutionException().isEmpty()) {
             return;
         }
-        WebDriver driver = BrowserExtension.driver();
+        WebDriver driver = context.getTestInstance()
+                .filter(SmokeTestBase.class::isInstance).map(t -> ((SmokeTestBase) t).d).orElse(null);
         if (driver == null) {
             return;
         }

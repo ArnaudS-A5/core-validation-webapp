@@ -3,8 +3,8 @@ package fr.socle.testapp.api;
 import java.util.Map;
 import java.util.Optional;
 
+import fr.socle.testapp.service.Espace;
 import fr.socle.testapp.service.ItemStore;
-import fr.socle.testapp.service.LatencyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,34 +25,28 @@ public class ItemController {
     public record ItemRequest(String name, String category, Double price) {
     }
 
-    private final ItemStore store;
-    private final LatencyService latency;
-
-    public ItemController(ItemStore store, LatencyService latency) {
-        this.store = store;
-        this.latency = latency;
-    }
-
     @GetMapping
     public ItemStore.Page list(@RequestParam(required = false) String q,
                                @RequestParam(required = false) String sort,
                                @RequestParam(required = false) String dir,
                                @RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "10") int size,
-                               @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
-        return store.query(q, sort, dir, page, size);
+                               @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
+        return espace.items().query(q, sort, dir, page, size);
     }
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> create(@RequestBody ItemRequest request,
-                                                       @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
+                                                       @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
         if (request.name() == null || request.name().isBlank()) {
             return ResponseEntity.unprocessableEntity()
                     .body(Json.of("errors", Json.of("name", "Le nom est obligatoire")));
         }
-        ItemStore.Item item = store.create(request.name().trim(),
+        ItemStore.Item item = espace.items().create(request.name().trim(),
                 request.category() == null || request.category().isBlank() ? "Divers" : request.category(),
                 request.price() == null ? 0.0 : request.price());
         return ResponseEntity.status(HttpStatus.CREATED).body(Json.of("item", item));
@@ -61,9 +55,10 @@ public class ItemController {
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, Object>> update(@PathVariable int id,
                                                       @RequestBody ItemRequest request,
-                                                      @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
-        Optional<ItemStore.Item> updated = store.update(id, request.name(), request.category(), request.price());
+                                                      @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
+        Optional<ItemStore.Item> updated = espace.items().update(id, request.name(), request.category(), request.price());
         if (updated.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Json.of("error", "Article introuvable"));
         }
@@ -72,9 +67,10 @@ public class ItemController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> delete(@PathVariable int id,
-                                                      @RequestParam(required = false) Integer delay) {
-        latency.simulate(delay);
-        if (!store.delete(id)) {
+                                                      @RequestParam(required = false) Integer delay,
+                                      Espace espace) {
+        espace.latency().simulate(delay);
+        if (!espace.items().delete(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Json.of("error", "Article introuvable"));
         }
         return ResponseEntity.ok(Json.of("deleted", id));

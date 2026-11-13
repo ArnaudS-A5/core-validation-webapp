@@ -7,13 +7,11 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.springframework.stereotype.Component;
 
 /**
  * Jeu de données factice (57 articles) en mémoire, modifiable (ajout, modification, suppression)
- * et réinitialisable via /api/admin/reset.
+ * et réinitialisable via /api/admin/reset. Une instance par espace de données ({@link Espace}).
  */
-@Component
 public class ItemStore {
 
     public record Item(int id, String name, String category, double price, boolean inStock) {

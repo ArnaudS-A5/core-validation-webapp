@@ -3,7 +3,7 @@ package fr.socle.testapp.api;
 import java.io.IOException;
 import java.time.Instant;
 
-import fr.socle.testapp.service.LatencyService;
+import fr.socle.testapp.service.Latency;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,17 +22,11 @@ public class StreamController {
     static final int MAX_COUNT = 200;
     static final int MIN_INTERVAL_MS = 20;
 
-    private final LatencyService latency;
-
-    public StreamController(LatencyService latency) {
-        this.latency = latency;
-    }
-
     @GetMapping(value = "/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter events(@RequestParam(defaultValue = "10") int count,
                              @RequestParam(defaultValue = "1000") int interval) {
         int events = Math.max(1, Math.min(count, MAX_COUNT));
-        int pause = Math.max(MIN_INTERVAL_MS, Math.min(interval, LatencyService.MAX_DELAY_MS));
+        int pause = Math.max(MIN_INTERVAL_MS, Math.min(interval, Latency.MAX_DELAY_MS));
         SseEmitter emitter = new SseEmitter((long) events * pause + 30_000L);
         Thread.ofVirtual().name("sse-events").start(() -> push(emitter, events, pause));
         return emitter;
@@ -41,7 +35,7 @@ public class StreamController {
     private void push(SseEmitter emitter, int events, int pause) {
         try {
             for (int seq = 1; seq <= events; seq++) {
-                latency.sleep(pause);
+                Latency.pause(pause);
                 emitter.send(SseEmitter.event().id(String.valueOf(seq)).name("message")
                         .data(Json.of("seq", seq, "text", "Événement " + seq, "time", Instant.now().toString()),
                                 MediaType.APPLICATION_JSON));

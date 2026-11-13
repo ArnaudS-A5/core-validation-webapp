@@ -4,41 +4,37 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 /**
- * Simule la latence réseau/serveur afin de mettre à l'épreuve les mécanismes de synchronisation.
+ * Latence simulée d'un espace : l'API attend réellement côté serveur avant de répondre, afin de
+ * mettre à l'épreuve les mécanismes de synchronisation.
  * <p>
- * Chaque endpoint accepte un paramètre optionnel {@code delay} (ms) qui prime sur la latence globale
+ * Chaque endpoint accepte un paramètre optionnel {@code delay} (ms) qui prime sur la latence de l'espace
  * (délai par défaut + gigue aléatoire), modifiable à chaud via {@code /api/admin/settings}.
  */
-@Service
-public class LatencyService {
+public class Latency {
 
     public static final int MAX_DELAY_MS = 30_000;
 
     private volatile int defaultDelayMs;
     private volatile int jitterMs;
 
-    public LatencyService(@Value("${testapp.latency.default-ms:300}") int defaultDelayMs,
-                          @Value("${testapp.latency.jitter-ms:0}") int jitterMs) {
+    public Latency(int defaultDelayMs, int jitterMs) {
         this.defaultDelayMs = defaultDelayMs;
         this.jitterMs = jitterMs;
     }
 
-    /** Attend le délai demandé, ou à défaut la latence globale (délai par défaut + gigue). */
+    /** Attend le délai demandé, ou à défaut la latence de l'espace (délai par défaut + gigue). */
     public void simulate(Integer requestedDelayMs) {
         if (requestedDelayMs != null) {
-            sleep(requestedDelayMs);
+            pause(requestedDelayMs);
             return;
         }
         int jitter = jitterMs > 0 ? ThreadLocalRandom.current().nextInt(jitterMs + 1) : 0;
-        sleep(defaultDelayMs + jitter);
+        pause(defaultDelayMs + jitter);
     }
 
     /** Attend exactement le délai demandé (borné entre 0 et {@link #MAX_DELAY_MS}). */
-    public void sleep(int delayMs) {
+    public static void pause(int delayMs) {
         int bounded = Math.max(0, Math.min(delayMs, MAX_DELAY_MS));
         if (bounded == 0) {
             return;

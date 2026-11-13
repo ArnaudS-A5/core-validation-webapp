@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Gestes</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+    <a id="nav-gestures" class="active" aria-current="page" href="gestes.html">Gestes</a>
+    <a id="nav-sync" href="synchro.html">Synchro</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Gestes souris et clavier</h1>
+    <p>Appui long, liste triable à la souris, molette et défilement horizontal, dessin et clic dans un canvas, éléments SVG, navigation au clavier (Tab), copier-coller.</p>
+  </div>
+
+  <section class="card" id="section-long-press">
+    <h2>Appui long (1,5 s)</h2>
+    <div class="row">
+      <button type="button" id="btn-long-press" class="primary">Maintenir appuyé pour valider</button>
+      <progress id="long-press-progress" class="hold-progress" max="1500" value="0"></progress>
+    </div>
+    <div id="long-press-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-sortable">
+    <h2>Liste triable à la souris (sans glisser-déposer HTML5)</h2>
+    <ul id="sortable-list" class="sortable-list">
+      <li id="sortable-item-1" data-value="1">Élément 1</li>
+      <li id="sortable-item-2" data-value="2">Élément 2</li>
+      <li id="sortable-item-3" data-value="3">Élément 3</li>
+      <li id="sortable-item-4" data-value="4">Élément 4</li>
+      <li id="sortable-item-5" data-value="5">Élément 5</li>
+    </ul>
+    <div id="sortable-result" class="result" role="status">Ordre : 1, 2, 3, 4, 5</div>
+  </section>
+
+  <section class="card" id="section-wheel">
+    <h2>Molette et défilement horizontal</h2>
+    <div id="wheel-zone" class="wheel-zone" tabindex="0">
+      <p id="wheel-line-1">Ligne 1 — faire défiler avec la molette</p>
+      <div class="spacer-tall" style="height: 600px;"></div>
+      <button type="button" id="wheel-target">Bouton en bas de la zone (molette)</button>
+    </div>
+    <div id="wheel-result" class="result" role="status">Molette : 0 cran</div>
+    <h3>Défilement horizontal</h3>
+    <div id="hscroll-zone" class="hscroll-zone">
+      <div class="hscroll-content">
+        <span>Début de la bande</span>
+        <button type="button" id="hscroll-target">Bouton tout à droite</button>
+      </div>
+    </div>
+    <div id="hscroll-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-canvas">
+    <h2>Canvas : dessin et clic par coordonnées</h2>
+    <p class="hint">Dessiner une signature à la souris. Les trois cibles sont dessinées dans le canvas : aucun élément HTML ne les représente.</p>
+    <canvas id="draw-canvas" width="420" height="160" aria-label="Zone de dessin"></canvas>
+    <div class="row">
+      <button type="button" id="btn-draw-clear">Effacer</button>
+    </div>
+    <div id="draw-result" class="result" role="status">Tracé : 0 point</div>
+    <h3>Cibles dessinées</h3>
+    <canvas id="targets-canvas" width="420" height="120" aria-label="Cibles A, B et C"></canvas>
+    <div id="canvas-click-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-svg">
+    <h2>Éléments SVG</h2>
+    <svg id="svg-chart" width="420" height="160" viewBox="0 0 420 160" role="img" aria-label="Graphique">
+      <rect x="0" y="0" width="420" height="160" fill="#f0f4f8"></rect>
+      <polyline points="40,120 140,60 240,90 340,30" fill="none" stroke="#829ab1" stroke-width="2"></polyline>
+      <circle id="svg-point-1" class="svg-point" cx="40" cy="120" r="10" fill="#0b5fff" data-label="Janvier" data-value="12"></circle>
+      <circle id="svg-point-2" class="svg-point" cx="140" cy="60" r="10" fill="#0b5fff" data-label="Février" data-value="42"></circle>
+      <circle id="svg-point-3" class="svg-point" cx="240" cy="90" r="10" fill="#0b5fff" data-label="Mars" data-value="27"></circle>
+      <circle id="svg-point-4" class="svg-point" cx="340" cy="30" r="10" fill="#0b5fff" data-label="Avril" data-value="58"></circle>
+      <text id="svg-tooltip" x="210" y="150" text-anchor="middle" font-size="13" fill="#102a43"></text>
+    </svg>
+    <div id="svg-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card focus-zone" id="section-focus">
+    <h2>Navigation au clavier (Tab / Maj+Tab)</h2>
+    <div class="row">
+      <input type="text" id="tab-field-1" placeholder="Champ 1" aria-label="Champ 1">
+      <input type="text" id="tab-field-2" placeholder="Champ 2" aria-label="Champ 2">
+      <input type="text" id="tab-field-3" placeholder="Champ 3" aria-label="Champ 3">
+      <span id="tab-custom" class="tab-custom" tabindex="0" role="button">Élément focalisable (Entrée ou Espace)</span>
+    </div>
+    <div id="focus-result" class="result" role="status">Focus : aucun</div>
+    <div id="blur-result" class="hint" role="status"></div>
+    <div id="tab-custom-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-clipboard">
+    <h2>Copier-coller au clavier</h2>
+    <div class="row">
+      <input type="text" id="copy-source" value="Texte à copier 42" aria-label="Source">
+      <input type="text" id="paste-target" placeholder="Coller ici" aria-label="Destination">
+    </div>
+    <div id="copy-result" class="hint" role="status"></div>
+    <div id="paste-result" class="result" role="status"></div>
+  </section>
+</main>
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/gestes.js"></script>
+</body>
+</html>

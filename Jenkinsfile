@@ -116,7 +116,8 @@ pipeline {
                                         \$MVN -Psmoke -DskipUnitTests=true -Djacoco.skip=true verify \
                                             -Dbrowser=${browser} -Dapp.url=\$APP_URL -Dgrid.url=\$GRID_URL \
                                             -Dallure.results.directory=\$WORKSPACE/target/allure-results-${browser} \
-                                            -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'}
+                                            -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'} \
+                                            -Dapp.expectedVersion=\$VERSION
                                     """
                                 }
                                 // Rapports préfixés par le navigateur pour les distinguer dans Jenkins

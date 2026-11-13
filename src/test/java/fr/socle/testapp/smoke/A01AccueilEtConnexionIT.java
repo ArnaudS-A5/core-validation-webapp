@@ -2,6 +2,13 @@ package fr.socle.testapp.smoke;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -20,6 +27,24 @@ class A01AccueilEtConnexionIT extends SmokeTestBase {
 
     @Test
     @Order(2)
+    void version_deployee_affichee() throws Exception {
+        open("index.html");
+        assertThat(waitUntil(drv -> attr("#app-version", "data-version") != null, 5)).as("version affichée dans l'en-tête").isTrue();
+        String displayed = attr("#app-version", "data-version");
+        String api = new ObjectMapper().readTree(HttpClient.newHttpClient().send(
+                HttpRequest.newBuilder(URI.create(APP + "/api/version")).build(),
+                HttpResponse.BodyHandlers.ofString()).body()).path("version").asText();
+        assertThat(displayed).as("version affichée = version de l'API").isEqualTo(api);
+        assertThat(text("#app-version")).as("libellé de version").startsWith("v" + api);
+        // En CI : la version déployée doit être celle que le pipeline vient de construire
+        String expected = System.getProperty("app.expectedVersion", "").trim();
+        if (!expected.isEmpty()) {
+            assertThat(displayed).as("version déployée = version construite par le pipeline").isEqualTo(expected);
+        }
+    }
+
+    @Test
+    @Order(3)
     void ping_asynchrone_et_data_testid() {
         open("index.html");
         assertThat(waitText("#server-status", "Serveur disponible")).as("ping asynchrone").isTrue();
@@ -27,14 +52,14 @@ class A01AccueilEtConnexionIT extends SmokeTestBase {
     }
 
     @Test
-    @Order(3)
+    @Order(4)
     void navigation_par_carte() {
         click("#card-clicks");
         assertThat(waitUntil(drv -> drv.getCurrentUrl().endsWith("clicks.html"), 5)).as("navigation vers clicks.html").isTrue();
     }
 
     @Test
-    @Order(4)
+    @Order(5)
     void parametre_delay_de_la_page() {
         long t0 = System.currentTimeMillis();
         open("index.html?delay=1200");

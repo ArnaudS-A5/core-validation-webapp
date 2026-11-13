@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Synchro</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+    <a id="nav-gestures" href="gestes.html">Gestes</a>
+    <a id="nav-sync" class="active" aria-current="page" href="synchro.html">Synchro</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Synchronisation</h1>
+    <p>Défilement infini, bandeau fixe qui recouvre les éléments, animation longue, flux temps réel poussé par le serveur (SSE), valeur qui évolue jusqu'à un seuil, Shadow DOM fermé et imbriqué.</p>
+  </div>
+
+  <section class="card" id="section-infinite">
+    <h2>Défilement infini (chargement par appel serveur à l'approche du bas)</h2>
+    <div id="infinite-zone" class="infinite-zone">
+      <ol id="infinite-list"></ol>
+      <div class="row" style="padding: 0 1rem .5rem;"><span id="infinite-spinner" class="spinner" role="status"></span></div>
+    </div>
+    <div id="infinite-status" class="result" role="status">Chargement…</div>
+  </section>
+
+  <section class="card" id="section-animation">
+    <h2>Animation longue (3 s)</h2>
+    <div class="row">
+      <button type="button" id="btn-animate">Déplacer la cible</button>
+    </div>
+    <div class="anim-track">
+      <button type="button" id="anim-target" class="anim-target" data-state="idle">Cible animée</button>
+    </div>
+    <div id="anim-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-feed">
+    <h2>Flux temps réel poussé par le serveur (SSE)</h2>
+    <p class="hint">12 événements, un toutes les 600 ms ; seuls les 5 derniers restent affichés.</p>
+    <div class="row">
+      <button type="button" id="btn-feed-start" class="primary">Démarrer le flux</button>
+      <button type="button" id="btn-feed-stop">Arrêter</button>
+    </div>
+    <ul id="feed-list" class="feed-list"></ul>
+    <div id="feed-status" class="result" role="status">Flux arrêté</div>
+  </section>
+
+  <section class="card" id="section-threshold">
+    <h2>Valeur qui évolue jusqu'à un seuil</h2>
+    <div class="row">
+      <button type="button" id="btn-threshold-start">Lancer la progression</button>
+      <button type="button" id="btn-threshold-action" disabled>Action disponible à partir de 80 %</button>
+    </div>
+    <div id="threshold-value" class="result" role="status">Progression : 0 %</div>
+    <div id="threshold-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-shadow-closed">
+    <h2>Shadow DOM fermé et Shadow DOM imbriqué</h2>
+    <p class="hint">Le contenu d'un Shadow DOM fermé n'est pas accessible aux sélecteurs : seul un clic à l'emplacement de l'hôte l'atteint. Le Shadow DOM interne apparaît 1 s après le chargement.</p>
+    <div id="shadow-closed-host" style="display: inline-block;"></div>
+    <div id="shadow-closed-result" class="result" role="status"></div>
+    <div id="shadow-outer-host" style="margin-top: .75rem;"></div>
+  </section>
+
+  <section class="card" id="section-banner">
+    <h2>Bandeau fixe qui recouvre les éléments</h2>
+    <p class="hint">Un bandeau fixe en bas de l'écran (type consentement) recouvre tout élément amené en bas de la zone visible.</p>
+    <div class="spacer-tall"></div>
+    <button type="button" id="btn-under-banner" class="primary">Bouton en bas de page</button>
+    <div id="banner-result" class="result" role="status"></div>
+    <div style="height: 120px;"></div>
+  </section>
+</main>
+
+<div id="sticky-banner" class="sticky-banner" role="region" aria-label="Bandeau">
+  <span>Ce site utilise des cookies factices. Ce bandeau reste en place tant qu'il n'est pas accepté.</span>
+  <button type="button" id="btn-banner-accept">Accepter</button>
+</div>
+
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/synchro.js"></script>
+</body>
+</html>

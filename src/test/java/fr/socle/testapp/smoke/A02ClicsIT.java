@@ -1,10 +1,12 @@
 package fr.socle.testapp.smoke;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.interactions.Actions;
 
 @DisplayName("Clics")
@@ -89,6 +91,27 @@ class A02ClicsIT extends SmokeTestBase {
     void bouton_recouvert_cliquable_apres_2_s() {
         click("#btn-covered", 6);
         assertThat(waitText("#covered-result", "recouvert cliqué")).as("bouton recouvert cliquable après 2 s").isTrue();
+    }
+
+    @Test
+    @Order(91)
+    void bouton_recouvert_en_permanence_branches_d_erreur() {
+        Object blocking = js("var b = document.getElementById('btn-always-covered'); b.scrollIntoView({ block: 'center' });"
+                + "var r = b.getBoundingClientRect(); var el = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);"
+                + "return el && el.id;");
+        assertThat(blocking).as("calque permanent au-dessus du bouton").isEqualTo("permanent-cover");
+        // Clic natif : toujours intercepté
+        assertThatThrownBy(() -> $("#btn-always-covered").click()).as("clic natif intercepté")
+                .isInstanceOf(ElementClickInterceptedException.class);
+        // Attente d'un clic possible : expire et remonte l'erreur réelle (le calque ne part jamais)
+        long t0 = System.currentTimeMillis();
+        assertThatThrownBy(() -> click("#btn-always-covered", 3)).as("attente expirée, erreur d'interception remontée")
+                .isInstanceOf(ElementClickInterceptedException.class);
+        assertThat(System.currentTimeMillis() - t0).as("l'attente a duré au moins 3 s").isGreaterThanOrEqualTo(2900);
+        assertThat(textContent("#always-covered-result")).as("aucun clic n'a abouti").isEmpty();
+        // Seul un clic JavaScript atteint le bouton
+        js("document.getElementById('btn-always-covered').click()");
+        assertThat(waitText("#always-covered-result", "contournement par JavaScript")).as("clic par JavaScript").isTrue();
     }
 
     @Test

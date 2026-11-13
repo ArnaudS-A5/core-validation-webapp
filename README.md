@@ -36,14 +36,16 @@ Tout est embarqué dans le JAR, y compris jQuery 3.7.1 (`classic/js/jquery-3.7.1
 | Page | Scénarios |
 |---|---|
 | `login.html` | Formulaire + appel asynchrone ; `test`/`test` valide, `locked` → HTTP 423, autre → 401 |
-| `clicks.html` | Compteur, double-clic, clic droit, survol, bouton désactivé puis activé, bouton révélé, bouton mobile (animation), **bouton recouvert par un calque pendant 2 s**, lignes à libellé identique, clic avec appel serveur |
-| `forms.html` | Saisies, radios (dont radios personnalisés à input masqué), cases à cocher (« tout sélectionner » avec état indéterminé), listes natives (pays chargés par le serveur, ville dépendante, multiple avec optgroup), soumission avec validation serveur (422) |
+| `clicks.html` | Compteur, double-clic, clic droit, survol, bouton désactivé puis activé, bouton révélé, bouton mobile (animation), **bouton recouvert par un calque pendant 2 s**, **bouton recouvert en permanence** (calque jamais retiré : clic natif toujours intercepté, cible des branches d'erreur ; seul un clic JavaScript l'atteint), lignes à libellé identique, clic avec appel serveur |
+| `forms.html` | Saisies, radios (dont radios personnalisés à input masqué), cases à cocher (« tout sélectionner » avec état indéterminé), listes natives (pays chargés par le serveur, ville dépendante, multiple avec optgroup), soumission avec validation serveur (422), champ en **lecture seule déverrouillé en différé**, **calendrier JavaScript** (non natif, week-ends indisponibles), **liste à saisie pilotée au clavier** (↓ ↑ Entrée Échap) |
 | `dynamic.html` | Chargement différé, calque bloquant temporaire, **élément ré-rendu (références périmées)**, auto-complétion avec anti-rebond, polling, tâche longue avec barre de progression, service instable (2 échecs puis succès), « charger plus », notification éphémère, codes HTTP, requêtes parallèles |
 | `tables.html` | Tableau serveur : recherche, tri, pagination, taille de page, sélection, suppression avec modale, édition en ligne, ajout |
 | `windows.html` / `popup.html` | `window.open` (un ou deux pop-ups, ouverture différée), nouvel onglet, `postMessage` vers l'ouvreur, `alert` / `confirm` / `prompt` (dont alerte différée), redirection différée |
 | `frames.html` | Iframe simple, **imbriquée**, ajoutée en différé, sans id ni nom, `srcdoc`, formulaire dans une frame |
 | `files.html` | Téléchargements (txt, csv, json, zip, binaire 1 Mo, fichier lent, téléchargement par script/blob), upload (champ visible, champ **masqué**, barre de progression, zone de dépôt) |
 | `widgets.html` | Onglets, accordéon animé, modale, menu au survol, liste personnalisée, glisser-déposer HTML5, curseur à la souris, **Shadow DOM**, clavier, zone défilante |
+| `gestes.html` | **Appui long**, liste triable à la souris (sans HTML5), **molette** et défilement horizontal, **canvas** (dessin et cibles cliquables par coordonnées), éléments **SVG**, navigation **Tab / Maj+Tab** avec focus et perte de focus, copier-coller au clavier |
+| `synchro.html` | **Défilement infini** (chargement serveur à l'approche du bas), **bandeau fixe qui recouvre** les éléments, animation longue, **flux temps réel SSE** poussé par le serveur, action disponible à partir d'un seuil, **Shadow DOM fermé** et Shadow DOM imbriqué différé |
 
 ## Latence et pilotage
 
@@ -57,6 +59,7 @@ Tout est embarqué dans le JAR, y compris jQuery 3.7.1 (`classic/js/jquery-3.7.1
 
 | Méthode et chemin | Rôle |
 |---|---|
+| `GET /api/version` | Version déployée (`version`, `buildTime`, `commit`), affichée en permanence dans l'en-tête de chaque page (`#app-version`) |
 | `GET /api/ping`, `GET /api/clock` | Santé et heure serveur |
 | `GET /api/slow?delay=N` | Répond après N ms |
 | `POST /api/login` | `test`/`test` → 200 ; `locked` → 423 ; sinon 401 |
@@ -69,6 +72,7 @@ Tout est embarqué dans le JAR, y compris jQuery 3.7.1 (`classic/js/jquery-3.7.1
 | `GET/POST /api/items`, `PUT/DELETE /api/items/{id}` | 57 articles ; paramètres `q`, `sort`, `dir`, `page`, `size` |
 | `GET /api/files/download/{txt,csv,json,zip,bin}` | Téléchargements (`delay`, `size` pour `bin`) |
 | `POST /api/files/upload` | Champ multipart `file` → nom, taille, SHA-256 |
+| `GET /api/stream/events?count=N&interval=ms` | Flux SSE : N événements `message` puis un événement `end` |
 | `GET/PUT /api/admin/settings`, `POST /api/admin/reset` | Pilotage |
 
 ## Structure

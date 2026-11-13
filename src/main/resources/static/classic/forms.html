@@ -20,6 +20,8 @@
     <a id="nav-frames" href="frames.html">Iframes</a>
     <a id="nav-files" href="files.html">Fichiers</a>
     <a id="nav-widgets" href="widgets.html">Widgets</a>
+    <a id="nav-gestures" href="gestes.html">Gestes</a>
+    <a id="nav-sync" href="synchro.html">Synchro</a>
   </nav>
 </header>
 <main>
@@ -135,9 +137,56 @@
       <pre id="form-received" class="hint"></pre>
     </section>
   </form>
+
+  <section class="card" id="section-readonly">
+    <h2>Lecture seule et désactivé</h2>
+    <div class="row">
+      <div class="field">
+        <label for="input-readonly">Référence (lecture seule)</label>
+        <input type="text" id="input-readonly" value="REF-2026-001" readonly>
+      </div>
+      <div class="field">
+        <label for="input-disabled">Champ désactivé</label>
+        <input type="text" id="input-disabled" value="Non modifiable" disabled>
+      </div>
+    </div>
+    <div class="row">
+      <button type="button" id="btn-unlock-readonly">Déverrouiller la référence (après 1,5 s)</button>
+      <span id="unlock-spinner" class="spinner" role="status"></span>
+    </div>
+    <div id="readonly-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-datepicker">
+    <h2>Calendrier JavaScript (non natif)</h2>
+    <p class="hint">Champ en lecture seule : la date se choisit dans le calendrier. Samedis et dimanches indisponibles.</p>
+    <div class="datepicker-wrap">
+      <input type="text" id="datepicker-input" placeholder="jj/mm/aaaa" readonly aria-haspopup="dialog" aria-controls="datepicker">
+      <div id="datepicker" class="datepicker hidden" role="dialog" aria-label="Calendrier">
+        <div class="datepicker-head">
+          <button type="button" id="datepicker-prev" aria-label="Mois précédent">‹</button>
+          <strong id="datepicker-month"></strong>
+          <button type="button" id="datepicker-next" aria-label="Mois suivant">›</button>
+        </div>
+        <div id="datepicker-days" class="datepicker-days"></div>
+      </div>
+    </div>
+    <div id="datepicker-result" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-combobox">
+    <h2>Liste à saisie pilotée au clavier</h2>
+    <p class="hint">Saisir quelques lettres, puis ↓ / ↑ pour se déplacer, Entrée pour choisir, Échap pour fermer. Les pays sont chargés par appel serveur.</p>
+    <div class="combobox">
+      <input type="text" id="combo-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="combo-list" autocomplete="off">
+      <ul id="combo-list" class="combo-list hidden" role="listbox"></ul>
+    </div>
+    <div id="combo-result" class="result" role="status"></div>
+  </section>
 </main>
 <script src="js/jquery-3.7.1.min.js"></script>
 <script src="js/common.js"></script>
 <script src="js/forms.js"></script>
+<script src="js/forms-avance.js"></script>
 </body>
 </html>

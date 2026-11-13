@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.openqa.selenium.By;
 import org.openqa.selenium.ElementClickInterceptedException;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
@@ -178,7 +179,10 @@ abstract class SmokeTestBase {
 
     // ---------- Actions ----------
 
-    /** Clic qui patiente tant que l'élément est recouvert (calque, animation). */
+    /**
+     * Clic qui patiente tant que l'élément est recouvert (calque, animation) ; si un élément fixe
+     * (bandeau, en-tête) le recouvre, l'élément est ramené au centre de l'écran avant de réessayer.
+     */
     protected void click(String css) {
         click(css, 5);
     }
@@ -189,6 +193,7 @@ abstract class SmokeTestBase {
                 $(css).click();
                 return true;
             } catch (ElementClickInterceptedException e) {
+                inView(css);
                 return false;
             }
         }, seconds);
@@ -219,6 +224,38 @@ abstract class SmokeTestBase {
             new Actions(d).release().perform();
         }
         return Integer.parseInt(textContent(displayedValueCss));
+    }
+
+    /** Navigateur local sous macOS (les raccourcis y utilisent Cmd et la disposition du clavier système). */
+    protected static boolean localMac() {
+        return !BrowserExtension.remote() && System.getProperty("os.name").toLowerCase().contains("mac");
+    }
+
+    /** Touche des raccourcis clavier (Ctrl, ou Cmd sur un navigateur local macOS). */
+    protected static Keys shortcutKey() {
+        return localMac() ? Keys.COMMAND : Keys.CONTROL;
+    }
+
+    /** Appuie sur une touche dans l'élément qui a le focus. */
+    protected void press(CharSequence... keys) {
+        new Actions(d).sendKeys(keys).perform();
+    }
+
+    /** Identifiant de l'élément qui a le focus. */
+    protected String focusedId() {
+        return String.valueOf(js("return document.activeElement && document.activeElement.id"));
+    }
+
+    /** Rectangle de l'élément (x, y, largeur, hauteur) dans la zone visible. */
+    protected String rect(WebElement element) {
+        return String.valueOf(js("var r = arguments[0].getBoundingClientRect(); return [r.x, r.y, r.width, r.height].join(',');", element));
+    }
+
+    /** Vrai si l'élément est entièrement visible dans la zone défilante qui le contient. */
+    protected boolean visibleInside(String elementCss, String containerCss) {
+        return Boolean.TRUE.equals(js("var e = document.querySelector(arguments[0]), c = document.querySelector(arguments[1]);"
+                + "if (!e) return false; var r = e.getBoundingClientRect(), z = c.getBoundingClientRect();"
+                + "return r.top >= z.top && r.bottom <= z.bottom && r.left >= z.left && r.right <= z.right;", elementCss, containerCss));
     }
 
     protected void type(String css, String value) {

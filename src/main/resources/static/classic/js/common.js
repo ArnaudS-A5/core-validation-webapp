@@ -21,7 +21,23 @@
     });
   }
 
+  // Version déployée, affichée en permanence dans l'en-tête (sans la latence simulée de la page)
+  function showVersion() {
+    var $header = $('.site-header');
+    if ($header.length === 0) {
+      return;
+    }
+    var $version = $('<span>', { id: 'app-version', 'class': 'app-version', text: 'version …' }).appendTo($header);
+    $.getJSON(apiBase + 'version').done(function (v) {
+      $version.text('v' + v.version + (v.buildTime ? ' · ' + v.buildTime : '') + ' · ' + v.commit)
+        .attr('data-version', v.version);
+    }).fail(function () {
+      $version.text('version inconnue').attr('data-version', '');
+    });
+  }
+
   $(function () {
+    showVersion();
     mirrorTestIds(document.body);
     new MutationObserver(function (mutations) {
       mutations.forEach(function (mutation) {

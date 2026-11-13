@@ -32,6 +32,9 @@
         <!-- Résultats Allure du contrôle de fumée (la CI en utilise un par navigateur) -->
         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
 
+        <!-- Commit du build : « local » par défaut, celui de Jenkins via le profil ci-commit (variable GIT_COMMIT) -->
+        <git.commit>local</git.commit>
+
         <!-- Permet de ne lancer que le contrôle de fumée : -DskipUnitTests=true -->
         <skipUnitTests>false</skipUnitTests>
 
@@ -89,6 +92,19 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <!-- META-INF/build-info.properties : version, date du build, commit (affichés par l'appli) -->
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                        <configuration>
+                            <additionalProperties>
+                                <commit>${git.commit}</commit>
+                            </additionalProperties>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- Remplace ${revision} par la vraie version dans le POM publié -->
@@ -159,6 +175,18 @@
     </build>
 
     <profiles>
+        <!-- Activé automatiquement dans Jenkins : le commit construit est inscrit dans la version affichée -->
+        <profile>
+            <id>ci-commit</id>
+            <activation>
+                <property>
+                    <name>env.GIT_COMMIT</name>
+                </property>
+            </activation>
+            <properties>
+                <git.commit>${env.GIT_COMMIT}</git.commit>
+            </properties>
+        </profile>
         <!--
             Contrôle de fumée contre une application déjà lancée :
             mvn -Psmoke -DskipUnitTests=true verify -Dapp.url=http://testapp.home.arpa:8085 -Dgrid.url=http://grid.home.arpa:4444 -Dbrowser=chrome
@@ -181,6 +209,7 @@
                                 <browser>${browser}</browser>
                                 <allure.results.directory>${allure.results.directory}</allure.results.directory>
                                 <smoke.ralenti>${smoke.ralenti}</smoke.ralenti>
+                                <app.expectedVersion>${app.expectedVersion}</app.expectedVersion>
                             </systemPropertyVariables>
                         </configuration>
                         <executions>
@@ -200,6 +229,8 @@
                 <browser>chrome</browser>
                 <!-- Mode observation : pause (ms) après chaque geste, 0 = vitesse normale -->
                 <smoke.ralenti>0</smoke.ralenti>
+                <!-- Version attendue sur l'application déployée (fournie par la CI) ; vide = non vérifiée -->
+                <app.expectedVersion/>
             </properties>
         </profile>
     </profiles>

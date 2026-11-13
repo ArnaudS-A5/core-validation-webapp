@@ -105,3 +105,44 @@ iframe { border: 1px solid #9fb3c8; width: 100%; height: 170px; background: #fff
 .pagination { display: flex; flex-wrap: wrap; gap: .25rem; margin-top: .5rem; }
 .pagination button[aria-current=page] { background: #0b5fff; color: #fff; border-color: #0b5fff; }
 .menu-zone { align-items: flex-start; min-height: 8.5rem; }
+
+/* --- Formulaires : calendrier et liste au clavier --- */
+input[readonly] { background: #f0f4f8; }
+.datepicker-wrap, .combobox { position: relative; display: inline-block; }
+.datepicker { position: absolute; top: 100%; left: 0; z-index: 30; background: #fff; border: 1px solid #829ab1; border-radius: 6px; padding: .5rem; box-shadow: 0 4px 12px rgba(16,42,67,.2); width: 17rem; }
+.datepicker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .35rem; }
+.datepicker-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.datepicker-weekday { font-size: .8rem; color: #627d98; }
+.datepicker-day { padding: .2rem 0; }
+.combo-list { position: absolute; top: 100%; left: 0; right: 0; z-index: 30; margin: 0; padding: 0; list-style: none; background: #fff; border: 1px solid #829ab1; }
+.combo-list li { padding: .3rem .5rem; cursor: pointer; }
+.combo-list li.active { background: #0b5fff; color: #fff; }
+
+/* --- Gestes --- */
+.hold-progress { width: 220px; }
+.sortable-list { list-style: none; padding: 0; margin: 0; width: 260px; user-select: none; }
+.sortable-list li { padding: .45rem .6rem; margin: 3px 0; background: #fff; border: 1px solid #9fb3c8; border-radius: 4px; cursor: grab; }
+.sortable-list li.dragging { background: #eaf1ff; border-color: #0b5fff; cursor: grabbing; }
+.wheel-zone { height: 140px; overflow-y: auto; border: 1px solid #9fb3c8; padding: .5rem; }
+.hscroll-zone { width: 100%; overflow-x: auto; border: 1px solid #9fb3c8; white-space: nowrap; }
+.hscroll-content { width: 2400px; padding: .75rem; display: flex; justify-content: space-between; align-items: center; }
+canvas { border: 1px solid #829ab1; background: #fff; cursor: crosshair; touch-action: none; }
+svg .svg-point { cursor: pointer; }
+svg .svg-point:hover { stroke: #102a43; stroke-width: 3; }
+.focus-zone input:focus, .focus-zone [tabindex]:focus { outline: 3px solid #f0b429; }
+.tab-custom { display: inline-block; padding: .4rem .8rem; border: 1px dashed #829ab1; border-radius: 4px; }
+
+/* --- Synchro --- */
+.sticky-banner { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; background: #243b53; color: #fff; padding: 1.4rem 1rem; display: flex; justify-content: space-between; align-items: center; min-height: 70px; }
+.infinite-zone { height: 220px; overflow-y: auto; border: 1px solid #9fb3c8; }
+.infinite-zone ol { margin: 0; padding: .5rem 2rem; }
+.anim-track { position: relative; height: 48px; background: #f0f4f8; border-radius: 4px; overflow: hidden; }
+.anim-target { position: absolute; top: 6px; left: 0; transition: left 3s ease-in-out; }
+.anim-target.moved { left: calc(100% - 9rem); }
+.feed-list { list-style: none; padding: 0; margin: .35rem 0; min-height: 9rem; }
+.feed-list li { padding: .25rem .5rem; border-bottom: 1px solid #d9e2ec; }
+.spacer-tall { height: 900px; }
+
+/* --- Version déployée (en-tête de toutes les pages) --- */
+.app-version { margin-left: auto; font-size: .8rem; color: #bcccdc; white-space: nowrap; }
+.covered-wrap .cover-visible { background: repeating-linear-gradient(45deg, rgba(192,57,43,.28) 0 6px, rgba(255,255,255,.15) 6px 12px); cursor: not-allowed; }

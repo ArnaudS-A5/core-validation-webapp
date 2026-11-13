@@ -59,6 +59,11 @@
   });
 
   setTimeout(function () { $('#cover').remove(); }, 2000);
+  // Bouton recouvert en permanence : le calque n'est jamais retiré
+  $('#btn-always-covered').on('click', function () {
+    App.showResult('#always-covered-result', 'Bouton recouvert en permanence cliqué (contournement par JavaScript)', false);
+  });
+
   $('#btn-covered').on('click', function () {
     App.showResult('#covered-result', 'Bouton recouvert cliqué', false);
   });

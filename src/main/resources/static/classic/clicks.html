@@ -20,6 +20,8 @@
     <a id="nav-frames" href="frames.html">Iframes</a>
     <a id="nav-files" href="files.html">Fichiers</a>
     <a id="nav-widgets" href="widgets.html">Widgets</a>
+    <a id="nav-gestures" href="gestes.html">Gestes</a>
+    <a id="nav-sync" href="synchro.html">Synchro</a>
   </nav>
 </header>
 <main>
@@ -85,6 +87,14 @@
       <span id="covered-result" class="result"></span>
     </div>
     <p class="hint">Le bouton recouvert est inaccessible (un calque transparent le masque) pendant 2 secondes après le chargement de la page.</p>
+    <div class="row">
+      <span class="covered-wrap">
+        <button type="button" id="btn-always-covered">Bouton recouvert en permanence</button>
+        <span id="permanent-cover" class="cover cover-visible" aria-hidden="true"></span>
+      </span>
+      <span id="always-covered-result" class="result"></span>
+    </div>
+    <p class="hint">Ce bouton reste recouvert quoi qu'il arrive (calque hachuré, jamais retiré) : tout clic natif est intercepté, toute attente de « cliquable » expire. Cible des branches d'erreur du socle. Seul un clic par JavaScript l'atteint.</p>
   </section>
 
   <section class="card" id="section-server">

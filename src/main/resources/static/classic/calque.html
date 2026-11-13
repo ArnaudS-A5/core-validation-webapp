@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Calque permanent</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+    <a id="nav-gestures" href="gestes.html">Gestes</a>
+    <a id="nav-sync" href="synchro.html">Synchro</a>
+    <a id="nav-overlay" class="active" aria-current="page" href="calque.html">Calque permanent</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Calque permanent</h1>
+    <p>Un calque plein écran (« chargement en cours » qui ne se termine jamais) recouvre toute la page dès son ouverture et n'est jamais retiré.
+      Tout clic natif est intercepté, toute attente d'un élément cliquable expire : cible des branches d'erreur du socle. Seul un clic par JavaScript passe.</p>
+  </div>
+
+  <section class="card" id="section-under-overlay">
+    <h2>Éléments sous le calque</h2>
+    <div class="row">
+      <button type="button" id="btn-under-overlay" class="primary">Bouton sous le calque</button>
+      <a id="link-under-overlay" href="#section-under-overlay">Lien sous le calque</a>
+    </div>
+    <div id="under-overlay-result" class="result" role="status"></div>
+  </section>
+</main>
+
+<!-- Même mécanisme que le calque temporaire de la page Asynchrone, mais jamais retiré -->
+<div id="page-overlay" class="overlay-full" role="alertdialog" aria-busy="true" aria-label="Chargement en cours">
+  <div class="overlay-box">
+    <span class="spinner-big" aria-hidden="true"></span>
+    <span id="page-overlay-text">Chargement en cours…</span>
+  </div>
+</div>
+
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/calque.js"></script>
+</body>
+</html>

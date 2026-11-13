@@ -55,7 +55,13 @@ abstract class SmokeTestBase {
         for (int i = 1; i < handles.size(); i++) {
             try {
                 d.switchTo().window(handles.get(i));
-                System.out.println("[fumée] fenêtre restée ouverte avant " + getClass().getSimpleName() + " : " + d.getCurrentUrl());
+                String url = d.getCurrentUrl();
+                if (url.startsWith("edge://") || url.startsWith("chrome://") || url.startsWith("about:")) {
+                    // Page interne ouverte par le navigateur lui-même (ex. edge://downloads-hub/ après un
+                    // téléchargement) : sa fermeture échoue au bout de 20 s, on la laisse sans la toucher
+                    continue;
+                }
+                System.out.println("[fumée] fenêtre restée ouverte avant " + getClass().getSimpleName() + " : " + url);
                 d.close();
             } catch (Exception e) {
                 System.out.println("[fumée] fermeture impossible (" + e.getClass().getSimpleName() + "), fenêtre ignorée");

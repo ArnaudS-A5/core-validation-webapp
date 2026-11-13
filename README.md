@@ -46,6 +46,7 @@ Tout est embarqué dans le JAR, y compris jQuery 3.7.1 (`classic/js/jquery-3.7.1
 | `widgets.html` | Onglets, accordéon animé, modale, menu au survol, liste personnalisée, glisser-déposer HTML5, curseur à la souris, **Shadow DOM**, clavier, zone défilante |
 | `gestes.html` | **Appui long**, liste triable à la souris (sans HTML5), **molette** et défilement horizontal, **canvas** (dessin et cibles cliquables par coordonnées), éléments **SVG**, navigation **Tab / Maj+Tab** avec focus et perte de focus, copier-coller au clavier |
 | `synchro.html` | **Défilement infini** (chargement serveur à l'approche du bas), **bandeau fixe qui recouvre** les éléments, animation longue, **flux temps réel SSE** poussé par le serveur, action disponible à partir d'un seuil, **Shadow DOM fermé** et Shadow DOM imbriqué différé |
+| `calque.html` | **Calque plein écran permanent** (« chargement en cours » jamais terminé, curseur normal) au-dessus d'un bouton et d'un lien : clic natif toujours intercepté, attente de « cliquable » toujours expirée — branches d'erreur du socle ; seul un clic JavaScript passe |
 
 ## Latence et pilotage
 

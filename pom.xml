@@ -203,6 +203,10 @@
                             <includes>
                                 <include>**/smoke/**/*IT.java</include>
                             </includes>
+                            <!-- Rapports et synthèse propres à chaque navigateur : plusieurs exécutions
+                                 (successives ou simultanées) ne s'écrasent pas -->
+                            <reportsDirectory>${project.build.directory}/failsafe-reports-${browser}</reportsDirectory>
+                            <summaryFile>${project.build.directory}/failsafe-summary-${browser}.xml</summaryFile>
                             <systemPropertyVariables>
                                 <app.url>${app.url}</app.url>
                                 <grid.url>${grid.url}</grid.url>

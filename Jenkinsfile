@@ -1,6 +1,19 @@
 // Chaîne CI/CD de socle-testapp
 // build + tests unitaires → Sonar (porte qualité) → JAR dans Nexus → image Docker dans Nexus
-// → rétention (3 images) → déploiement sur testapp.home.arpa:8085 → contrôle de fumée via le Grid
+// → déploiement sur testapp.home.arpa:8085 → contrôle de fumée via le Grid
+// Toutes les versions (JAR et images) sont conservées dans Nexus.
+//
+// Règle : tout est compilé et le JAR est fabriqué UNE SEULE FOIS, à la première étape.
+// Les étapes suivantes réutilisent ce qui a été produit (JAR analysé = JAR publié = JAR déployé ;
+// le contrôle de fumée exécute les classes de test déjà compilées, sans relancer le cycle Maven).
+// Maven avec le settings.xml géré par Jenkins (plugin Config File Provider, fichier « maven-settings-nexus ») :
+// miroir Nexus et identifiants injectés par Jenkins, aucun fichier de configuration CI dans le projet.
+def mvn(String arguments) {
+    configFileProvider([configFile(fileId: 'maven-settings-nexus', variable: 'MAVEN_SETTINGS')]) {
+        sh "mvn -B -ntp -s \"\$MAVEN_SETTINGS\" -Drevision=${env.VERSION} ${arguments}"
+    }
+}
+
 pipeline {
     agent any
 
@@ -32,18 +45,17 @@ pipeline {
         IMAGE       = "${REGISTRY}/socle-testapp:${VERSION}"
         SONAR_URL   = 'http://sonarqube.home.arpa:9000'
         APP_URL     = 'http://testapp.home.arpa:8085'
+        APP_CONTAINER = 'socle-testapp'
+        APP_PORT    = '8085'
         GRID_URL    = 'http://grid.home.arpa:4444'
         // Docker sans root de l'utilisateur jenkins-agent
         DOCKER_HOST = 'unix:///run/user/999/docker.sock'
-        MVN         = "mvn -B -ntp -s ci/settings.xml -Drevision=${VERSION}"
     }
 
     stages {
         stage('Build et tests unitaires') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-ci', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                    sh '$MVN clean verify'
-                }
+                mvn 'clean verify'
             }
             post {
                 always {
@@ -54,20 +66,17 @@ pipeline {
 
         stage('Analyse Sonar') {
             steps {
-                withCredentials([
-                        usernamePassword(credentialsId: 'nexus-ci', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD'),
-                        string(credentialsId: 'sonarqube-ci', variable: 'SONAR_TOKEN')]) {
+                withCredentials([string(credentialsId: 'sonarqube-ci', variable: 'SONAR_TOKEN')]) {
                     // Le scanner lit SONAR_TOKEN dans l'environnement et attend le verdict de la porte qualité
-                    sh '$MVN sonar:sonar -Dsonar.host.url=$SONAR_URL -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300'
+                    mvn "sonar:sonar -Dsonar.host.url=${env.SONAR_URL} -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300"
                 }
             }
         }
 
         stage('Publication du JAR') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-ci', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                    sh '$MVN -DskipTests deploy -DaltDeploymentRepository=nexus::$NEXUS_URL/repository/maven-releases/'
-                }
+                // Publie le JAR déjà fabriqué (et son POM aplati) sans relancer le cycle Maven
+                mvn "deploy:deploy-file -Dfile=target/socle-testapp.jar -DpomFile=.flattened-pom.xml -DrepositoryId=nexus -Durl=${env.NEXUS_URL}/repository/maven-releases/"
             }
         }
 
@@ -87,55 +96,73 @@ pipeline {
             }
         }
 
-        stage('Rétention Nexus') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-ci', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                    sh 'ci/nexus-docker-retention.sh socle-testapp 3'
-                }
-            }
-        }
-
         stage('Déploiement') {
             steps {
-                sh 'ci/deploy.sh "$IMAGE"'
+                script {
+                    // Conteneur unique publié sur le port de l'application ; en cas d'échec, retour à l'image précédente
+                    def previous = sh(returnStdout: true,
+                            script: 'docker inspect -f "{{.Config.Image}}" "$APP_CONTAINER" 2>/dev/null || true').trim()
+                    echo "Version en place : ${previous ?: 'aucune'}"
+                    def start = { String image ->
+                        sh """
+                            docker rm -f "\$APP_CONTAINER" >/dev/null 2>&1 || true
+                            docker run -d --name "\$APP_CONTAINER" --restart unless-stopped \
+                                -p "\$APP_PORT:8080" --memory 512m "${image}" >/dev/null
+                        """
+                    }
+                    def answers = {
+                        sh(returnStatus: true,
+                           script: 'curl -fsS "http://127.0.0.1:$APP_PORT/api/ping?delay=0" >/dev/null 2>&1') == 0
+                    }
+
+                    start(env.IMAGE)
+                    try {
+                        timeout(time: 2, unit: 'MINUTES') {
+                            waitUntil(initialRecurrencePeriod: 2000) { answers() }
+                        }
+                        echo "Déployé : ${env.IMAGE}"
+                    } catch (err) {
+                        sh 'docker logs --tail 100 "$APP_CONTAINER" || true'
+                        if (previous) {
+                            echo "Retour à la version précédente : ${previous}"
+                            start(previous)
+                        }
+                        error("Échec du déploiement de ${env.IMAGE} : l'application ne répond pas")
+                    }
+                }
             }
         }
 
         stage('Contrôle de fumée') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus-ci', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASSWORD')]) {
-                    script {
-                        // Navigateurs l'un après l'autre : les tests modifient les données de l'application
-                        for (browser in ['chrome', 'firefox', 'edge']) {
-                            stage("Fumée ${browser}") {
-                                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                    // jacoco.skip : la couverture ne concerne que les tests unitaires (étape 1) ;
-                                    // ici les tests pilotent un navigateur contre l'application déployée.
-                                    sh """
-                                        rm -rf target/failsafe-reports target/allure-results-${browser}
-                                        \$MVN -Psmoke -DskipUnitTests=true -Djacoco.skip=true verify \
-                                            -Dbrowser=${browser} -Dapp.url=\$APP_URL -Dgrid.url=\$GRID_URL \
-                                            -Dallure.results.directory=\$WORKSPACE/target/allure-results-${browser} \
-                                            -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'} \
-                                            -Dapp.expectedVersion=\$VERSION
-                                    """
-                                }
-                                // Rapports préfixés par le navigateur pour les distinguer dans Jenkins
-                                sh """
-                                    mkdir -p target/smoke-${browser}
-                                    for f in target/failsafe-reports/TEST-*.xml; do
-                                        [ -e "\$f" ] || continue
-                                        sed 's/classname="fr\\.socle\\.testapp\\.smoke\\./classname="${browser}./g' "\$f" > "target/smoke-${browser}/\$(basename "\$f")"
-                                    done
-                                """
+                script {
+                    // Navigateurs l'un après l'autre : les tests modifient les données de l'application
+                    for (browser in ['chrome', 'firefox', 'edge']) {
+                        stage("Fumée ${browser}") {
+                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                                // Exécution seule des tests de fumée déjà compilés (étape 1) : ni compilation,
+                                // ni fabrication du JAR, ni couverture. Rapports propres au navigateur
+                                // (failsafe-reports-<navigateur>, allure-results-<navigateur>).
+                                sh "rm -rf target/failsafe-reports-${browser} target/failsafe-summary-${browser}.xml target/allure-results-${browser}"
+                                mvn("-Psmoke failsafe:integration-test failsafe:verify" +
+                                    " -Dbrowser=${browser} -Dapp.url=${env.APP_URL} -Dgrid.url=${env.GRID_URL}" +
+                                    " -Dallure.results.directory=${env.WORKSPACE}/target/allure-results-${browser}" +
+                                    " -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'} -Dapp.expectedVersion=${env.VERSION}")
                             }
+                            // Rapports JUnit préfixés par le navigateur pour les distinguer dans Jenkins
+                            sh """
+                                for f in target/failsafe-reports-${browser}/TEST-*.xml; do
+                                    [ -e "\$f" ] || continue
+                                    sed -i 's/classname="/classname="${browser}./g' "\$f"
+                                done
+                            """
                         }
                     }
                 }
             }
             post {
                 always {
-                    junit allowEmptyResults: true, testResults: 'target/smoke-*/*.xml'
+                    junit allowEmptyResults: true, testResults: 'target/failsafe-reports-*/TEST-*.xml'
                     // Rapport HTML Allure (plugin Jenkins Allure + outil « allure » déclaré dans Tools)
                     allure includeProperties: false, jdk: '', results: [
                             [path: 'target/allure-results-chrome'],

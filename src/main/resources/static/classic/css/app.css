@@ -145,4 +145,6 @@ svg .svg-point:hover { stroke: #102a43; stroke-width: 3; }
 
 /* --- Version déployée (en-tête de toutes les pages) --- */
 .app-version { margin-left: auto; font-size: .8rem; color: #bcccdc; white-space: nowrap; }
-.covered-wrap .cover-visible { background: repeating-linear-gradient(45deg, rgba(192,57,43,.28) 0 6px, rgba(255,255,255,.15) 6px 12px); cursor: not-allowed; }
+.covered-wrap .cover-visible { background: repeating-linear-gradient(45deg, rgba(192,57,43,.28) 0 6px, rgba(255,255,255,.15) 6px 12px); }
+.overlay-full .overlay-box { display: flex; flex-direction: column; align-items: center; gap: .75rem; }
+.overlay-full .spinner-big { display: inline-block; width: 2.4rem; height: 2.4rem; border: 4px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }

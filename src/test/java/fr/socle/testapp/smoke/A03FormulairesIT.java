@@ -110,7 +110,8 @@ class A03FormulairesIT extends SmokeTestBase {
     void calendrier_javascript() {
         // Geste : ouvrir le calendrier, avancer jusqu'au mois visé, choisir le 15 (ou le premier jour ouvré suivant)
         LocalDate wanted = LocalDate.now().plusMonths(2).withDayOfMonth(15);
-        while (wanted.getDayOfWeek() == DayOfWeek.SATURDAY || wanted.getDayOfWeek() == DayOfWeek.SUNDAY) {
+        // getValue() : lundi = 1 … samedi = 6, dimanche = 7
+        while (wanted.getDayOfWeek().getValue() >= DayOfWeek.SATURDAY.getValue()) {
             wanted = wanted.plusDays(1);
         }
         String monthLabel = wanted.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.FRENCH));
@@ -123,7 +124,7 @@ class A03FormulairesIT extends SmokeTestBase {
         assertThat(textContent("#datepicker-month")).as("mois atteint").isEqualTo(monthLabel);
 
         LocalDate weekend = wanted.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
-        if (weekend.getMonth() == wanted.getMonth()) {
+        if (weekend.getMonthValue() == wanted.getMonthValue()) {
             assertThat($("#datepicker-day-" + weekend.getDayOfMonth()).isEnabled()).as("week-end indisponible").isFalse();
         }
         click("#datepicker-day-" + wanted.getDayOfMonth());

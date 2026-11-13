@@ -137,14 +137,14 @@ class A10GestesIT extends SmokeTestBase {
     @Order(10)
     void copier_coller_au_clavier() {
         click("#copy-source");
-        press(Keys.chord(shortcutKey(), "a"));
-        press(Keys.chord(shortcutKey(), "c"));
+        shortcut("a");
+        shortcut("c");
         boolean copied = waitText("#copy-result", "Texte copié", 3);
         Assumptions.assumeFalse(!copied && localMac(),
                 "Non applicable : navigateur local macOS (raccourcis soumis à la disposition du clavier système)");
         assertThat(copied).as("copie au clavier").isTrue();
         click("#paste-target");
-        press(Keys.chord(shortcutKey(), "v"));
+        shortcut("v");
         assertThat(waitText("#paste-result", "Collé : Texte à copier 42")).as("collage au clavier").isTrue();
     }
 }

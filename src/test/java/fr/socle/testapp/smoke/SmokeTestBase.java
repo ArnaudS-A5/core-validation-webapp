@@ -236,6 +236,15 @@ abstract class SmokeTestBase {
         return localMac() ? Keys.COMMAND : Keys.CONTROL;
     }
 
+    /**
+     * Raccourci clavier (Ctrl+touche, ou Cmd+touche en local sous macOS) : la touche de modification est
+     * maintenue pendant l'appui. Attention : Actions.sendKeys(Keys.chord(...)) appuie et relâche chaque
+     * touche séparément, ce qui ne produit pas de raccourci.
+     */
+    protected void shortcut(String key) {
+        new Actions(d).keyDown(shortcutKey()).sendKeys(key).keyUp(shortcutKey()).perform();
+    }
+
     /** Appuie sur une touche dans l'élément qui a le focus. */
     protected void press(CharSequence... keys) {
         new Actions(d).sendKeys(keys).perform();

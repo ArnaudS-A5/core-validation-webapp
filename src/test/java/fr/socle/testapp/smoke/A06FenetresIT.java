@@ -23,12 +23,20 @@ class A06FenetresIT extends SmokeTestBase {
         return new WebDriverWait(d, Duration.ofSeconds(seconds)).until(ExpectedConditions.alertIsPresent());
     }
 
+    /**
+     * Fenêtres apparues depuis {@code before}. On raisonne sur les identifiants de fenêtre, jamais sur leur nombre :
+     * le navigateur peut ouvrir ou refermer de lui-même ses pages internes (ex. edge://downloads-hub après un téléchargement).
+     */
+    private Set<String> newWindows(Set<String> before) {
+        Set<String> handles = new HashSet<>(d.getWindowHandles());
+        handles.removeAll(before);
+        return handles;
+    }
+
     /** Attend l'ouverture d'une nouvelle fenêtre et bascule dessus. */
     private String switchToNewWindow(Set<String> before) {
-        waitUntil(drv -> drv.getWindowHandles().size() > before.size(), 5);
-        Set<String> after = new HashSet<>(d.getWindowHandles());
-        after.removeAll(before);
-        String handle = after.iterator().next();
+        waitUntil(drv -> !newWindows(before).isEmpty(), 5);
+        String handle = newWindows(before).iterator().next();
         d.switchTo().window(handle);
         return handle;
     }
@@ -82,26 +90,20 @@ class A06FenetresIT extends SmokeTestBase {
     void pop_up_et_post_message() {
         Set<String> before = new HashSet<>(d.getWindowHandles());
         click("#btn-open-popup");
-        switchToNewWindow(before);
+        String popup = switchToNewWindow(before);
         assertThat(waitText("#popup-origin", "^popup$")).as("pop-up ouvert").isTrue();
         click("#popup-send");
         d.switchTo().window(main);
         assertThat(waitText("#popup-message", "Message de la fenêtre « popup »")).as("postMessage vers la fenêtre d'origine").isTrue();
 
-        d.switchTo().window(switchBack(before));
+        d.switchTo().window(popup);
         try {
             click("#popup-close");
         } catch (WebDriverException closedDuringClick) {
             // la fenêtre se ferme pendant le clic
         }
         d.switchTo().window(main);
-        assertThat(waitUntil(drv -> drv.getWindowHandles().size() == before.size(), 3)).as("pop-up fermé par script").isTrue();
-    }
-
-    private String switchBack(Set<String> before) {
-        Set<String> handles = new HashSet<>(d.getWindowHandles());
-        handles.removeAll(before);
-        return handles.iterator().next();
+        assertThat(waitUntil(drv -> !drv.getWindowHandles().contains(popup), 3)).as("pop-up fermé par script").isTrue();
     }
 
     @Test
@@ -120,7 +122,7 @@ class A06FenetresIT extends SmokeTestBase {
     void deux_pop_ups_par_nom_et_par_titre() {
         Set<String> before = new HashSet<>(d.getWindowHandles());
         click("#btn-open-two-popups");
-        assertThat(waitUntil(drv -> drv.getWindowHandles().size() == before.size() + 2, 5)).as("deux fenêtres ouvertes").isTrue();
+        assertThat(waitUntil(drv -> newWindows(before).size() >= 2, 5)).as("deux fenêtres ouvertes").isTrue();
 
         // Bascule par nom de fenêtre (window.name donné à window.open)
         d.switchTo().window("popupA");
@@ -141,7 +143,8 @@ class A06FenetresIT extends SmokeTestBase {
         d.close();
         d.switchTo().window(handleA).close();
         d.switchTo().window(main);
-        assertThat(d.getWindowHandles()).as("retour à la seule fenêtre principale").hasSize(before.size());
+        String closedB = handleB;
+        assertThat(d.getWindowHandles()).as("les deux pop-ups sont fermés").doesNotContain(handleA, closedB);
     }
 
     @Test
@@ -150,8 +153,8 @@ class A06FenetresIT extends SmokeTestBase {
         Set<String> before = new HashSet<>(d.getWindowHandles());
         click("#btn-open-delayed");
         assertThat(waitText("#popup-open-result", "Ouverture dans 2 secondes")).isTrue();
-        assertThat(d.getWindowHandles()).as("pas encore de pop-up juste après le clic").hasSize(before.size());
-        assertThat(waitUntil(drv -> drv.getWindowHandles().size() > before.size(), 5)).as("pop-up ouvert après 2 s").isTrue();
+        assertThat(newWindows(before)).as("pas encore de pop-up juste après le clic").isEmpty();
+        assertThat(waitUntil(drv -> !newWindows(before).isEmpty(), 5)).as("pop-up ouvert après 2 s").isTrue();
         switchToNewWindow(before);
         assertThat(waitText("#popup-origin", "^popup-differe$")).as("pop-up différé").isTrue();
         d.close();

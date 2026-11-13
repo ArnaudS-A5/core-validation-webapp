@@ -140,17 +140,23 @@ pipeline {
                 script {
                     // Les trois navigateurs en parallèle ; chacun répartit ses pages sur plusieurs sessions.
                     // Chaque session travaille dans son propre espace de données de l'application : aucune interférence.
+                    // Ordre de priorité : les navigateurs les plus lents reçoivent en premier les nœuds restants
                     def navigateurs = ['chrome', 'firefox', 'edge']
-                    int sessions
+                    def priorite = ['edge', 'chrome', 'firefox']
+                    def sessions = [:]
                     String demande = (params.SESSIONS_PAR_NAVIGATEUR ?: 'auto').trim()
                     if (demande.isInteger()) {
-                        sessions = Math.max(1, demande.toInteger())
+                        navigateurs.each { sessions[it] = Math.max(1, demande.toInteger()) }
                     } else {
+                        // Capacité libre réelle : par nœud disponible, sessions maximales moins sessions en cours
                         int libres = sh(returnStdout: true, script: '''
                             curl -fsS "$GRID_URL/status" | python3 -c "import json, sys; v = json.load(sys.stdin)['value']; print(sum(max(0, n.get('maxSessions', 1) - sum(1 for s in n['slots'] if s.get('session'))) for n in v['nodes'] if n.get('availability') == 'UP'))"
                         ''').trim().toInteger()
-                        sessions = Math.max(1, libres.intdiv(navigateurs.size()))
                         echo "Nœuds libres sur le Grid : ${libres}"
+                        // Toute la capacité est répartie : part égale, puis le reste aux plus lents (au moins 1 chacun)
+                        int part = libres.intdiv(navigateurs.size())
+                        int reste = libres % navigateurs.size()
+                        priorite.eachWithIndex { nav, i -> sessions[nav] = Math.max(1, part + (i < reste ? 1 : 0)) }
                     }
                     echo "Sessions par navigateur : ${sessions}"
 
@@ -164,7 +170,7 @@ pipeline {
                                 // (failsafe-reports-<navigateur>, allure-results-<navigateur>).
                                 sh "rm -rf target/failsafe-reports-${browser} target/failsafe-summary-${browser}.xml target/allure-results-${browser}"
                                 mvn("-Psmoke failsafe:integration-test failsafe:verify" +
-                                    " -Dbrowser=${browser} -Dsmoke.sessions=${sessions}" +
+                                    " -Dbrowser=${browser} -Dsmoke.sessions=${sessions[browser]}" +
                                     " -Dapp.url=${env.APP_URL} -Dgrid.url=${env.GRID_URL}" +
                                     " -Dallure.results.directory=${env.WORKSPACE}/target/allure-results-${browser}" +
                                     " -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'} -Dapp.expectedVersion=${env.VERSION}")

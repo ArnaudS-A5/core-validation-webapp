@@ -20,7 +20,7 @@ abstract class AbstractApiTest {
 
     @BeforeEach
     void resetState() {
-        espaces.common().reset();
-        espaces.common().latency().configure(0, 0);
+        espaces.commonSpace().reset();
+        espaces.commonSpace().latency().configure(0, 0);
     }
 }

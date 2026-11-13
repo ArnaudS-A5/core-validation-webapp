@@ -29,7 +29,7 @@ public class EspaceRegistry {
     private final int defaultDelayMs;
     private final int jitterMs;
     private final Map<String, Espace> spaces = new ConcurrentHashMap<>();
-    private final Espace common;
+    private final Espace commonSpace;
     private LongSupplier clock = System::currentTimeMillis;
     private volatile long lastPurgeMs;
 
@@ -37,7 +37,7 @@ public class EspaceRegistry {
                           @Value("${testapp.latency.jitter-ms:0}") int jitterMs) {
         this.defaultDelayMs = defaultDelayMs;
         this.jitterMs = jitterMs;
-        this.common = new Espace(COMMON, new Latency(defaultDelayMs, jitterMs), clock.getAsLong());
+        this.commonSpace = new Espace(COMMON, new Latency(defaultDelayMs, jitterMs), clock.getAsLong());
         this.lastPurgeMs = clock.getAsLong();
     }
 
@@ -59,8 +59,8 @@ public class EspaceRegistry {
     public Espace get(String id) {
         long now = clock.getAsLong();
         if (id == null || !VALID_ID.matcher(id).matches() || COMMON.equals(id)) {
-            common.touch(now);
-            return common;
+            commonSpace.touch(now);
+            return commonSpace;
         }
         purgeIfDue(now);
         Espace space = spaces.computeIfAbsent(id, key -> new Espace(key, new Latency(defaultDelayMs, jitterMs), now));
@@ -73,8 +73,8 @@ public class EspaceRegistry {
         return spaces.size();
     }
 
-    public Espace common() {
-        return common;
+    public Espace commonSpace() {
+        return commonSpace;
     }
 
     private void purgeIfDue(long now) {

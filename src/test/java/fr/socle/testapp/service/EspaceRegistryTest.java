@@ -22,8 +22,8 @@ class EspaceRegistryTest {
         EspaceRegistry registry = registry();
         Espace a = registry.get("a");
         assertThat(registry.get("a")).isSameAs(a);
-        assertThat(registry.get("commun")).isSameAs(registry.common());
-        assertThat(registry.get(null)).isSameAs(registry.common());
+        assertThat(registry.get("commun")).isSameAs(registry.commonSpace());
+        assertThat(registry.get(null)).isSameAs(registry.commonSpace());
         assertThat(a.latency().snapshot()).containsEntry("defaultDelayMs", 7);
         assertThat(registry.count()).isEqualTo(1);
     }

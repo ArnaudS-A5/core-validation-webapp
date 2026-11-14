@@ -56,6 +56,9 @@ class A04AsynchroneIT extends SmokeTestBase {
     void auto_completion() {
         type("#autocomplete-input", "an");
         assertThat(waitUntil(drv -> exists("#suggestion-0"), 4)).isTrue();
+        // La liste s'ouvre sous le champ, éventuellement hors de la zone visible : on la fait défiler à l'écran
+        // pour la lire, comme un utilisateur (hors de la zone visible, Firefox en renvoie un texte vide)
+        inView("#autocomplete-list");
         List<String> suggestions = $$("#autocomplete-list li").stream().map(WebElement::getText).toList();
         assertThat(suggestions).as("suggestions contiennent Banane").contains("Banane");
         click("#suggestion-0");

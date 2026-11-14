@@ -8,10 +8,13 @@
 // le contrôle de fumée exécute les classes de test déjà compilées, sans relancer le cycle Maven).
 // Maven avec le settings.xml géré par Jenkins (plugin Config File Provider, fichier « maven-settings-nexus ») :
 // miroir Nexus et identifiants injectés par Jenkins, aucun fichier de configuration CI dans le projet.
-def mvn(String arguments) {
+// Avec codeRetour = true, renvoie le code de sortie de Maven au lieu d'arrêter le pipeline en cas d'échec.
+def mvn(String arguments, boolean codeRetour = false) {
+    def code = null
     configFileProvider([configFile(fileId: 'maven-settings-nexus', variable: 'MAVEN_SETTINGS')]) {
-        sh "mvn -B -ntp -s \"\$MAVEN_SETTINGS\" -Drevision=${env.VERSION} ${arguments}"
+        code = sh(returnStatus: codeRetour, script: "mvn -B -ntp -s \"\$MAVEN_SETTINGS\" -Drevision=${env.VERSION} ${arguments}")
     }
+    return code
 }
 
 pipeline {
@@ -69,8 +72,18 @@ pipeline {
         stage('Analyse Sonar') {
             steps {
                 withCredentials([string(credentialsId: 'sonarqube-ci', variable: 'SONAR_TOKEN')]) {
-                    // Le scanner lit SONAR_TOKEN dans l'environnement et attend le verdict de la porte qualité
-                    mvn "sonar:sonar -Dsonar.host.url=${env.SONAR_URL} -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300"
+                    script {
+                        // Le scanner lit SONAR_TOKEN dans l'environnement et attend le verdict de la porte qualité.
+                        // Porte non franchie : build instable (jaune) mais le pipeline continue, comme un test en échec.
+                        // Analyse impossible (pas de rapport déposé dans Sonar) : le build échoue.
+                        int code = mvn("sonar:sonar -Dsonar.host.url=${env.SONAR_URL} -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300", true)
+                        if (code != 0) {
+                            if (!fileExists('target/sonar/report-task.txt')) {
+                                error 'Analyse Sonar impossible : aucun rapport transmis au serveur'
+                            }
+                            unstable "Porte qualité Sonar non franchie : ${env.SONAR_URL}/dashboard?id=fr.socle%3Asocle-testapp"
+                        }
+                    }
                 }
             }
         }

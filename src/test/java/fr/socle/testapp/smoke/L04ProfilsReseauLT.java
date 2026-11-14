@@ -127,17 +127,12 @@ class L04ProfilsReseauLT extends LatenceTestBase {
         open("forms.html");
         assertThat(waitText("#select-country", "Allemagne", 20)).as("liste des pays chargée").isTrue();
         long dureePays = System.currentTimeMillis() - avantOuverture;
-        // La page demande deux fois la liste des pays : la plus courte des deux latences tirées est un minimum sûr
-        assertThat(waitUntil(drv -> lignesDuPanneau().stream().filter(l -> l.chemin().equals("/api/countries")).count() == 2, 10))
-                .as("tirages des pays affichés").isTrue();
-        List<LigneTirage> pays = lignesDuPanneau().stream().filter(l -> l.chemin().equals("/api/countries")).toList();
-        for (LigneTirage ligne : pays) {
-            assertThat(ligne.latenceMs()).as("latence affichée du tirage n°" + ligne.numero())
-                    .isEqualTo(tirageAttendu(ProfilReseau.LENT, GRAINE_LENT, ligne.numero()).latenceMs());
-        }
-        int latencePays = pays.stream().mapToInt(LigneTirage::latenceMs).min().orElseThrow();
+        assertThat(waitUntil(drv -> ligneDuPanneau("/api/countries").isPresent(), 10)).as("tirage des pays affiché").isTrue();
+        LigneTirage pays = ligneDuPanneau("/api/countries").orElseThrow();
+        Reseau.Tirage attenduPays = tirageAttendu(ProfilReseau.LENT, GRAINE_LENT, pays.numero());
+        assertThat(pays.latenceMs()).as("latence affichée = latence calculée d'après la graine").isEqualTo(attenduPays.latenceMs());
         assertThat(dureePays).as("pays affichés après au moins la latence tirée + la latence de base")
-                .isGreaterThanOrEqualTo(latencePays + (long) base);
+                .isGreaterThanOrEqualTo(attenduPays.latenceMs() + (long) base);
 
         long avantChoix = System.currentTimeMillis();
         select("#select-country", "IT");

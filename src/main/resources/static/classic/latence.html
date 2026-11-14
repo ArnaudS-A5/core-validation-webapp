@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Socle TestApp — Latence</title>
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/latence.css">
+</head>
+<body>
+<header class="site-header">
+  <a id="brand" class="brand" href="index.html">Socle TestApp <small>classic · jQuery</small></a>
+  <nav id="main-nav" aria-label="Navigation principale">
+    <a id="nav-home" href="index.html">Accueil</a>
+    <a id="nav-login" href="login.html">Connexion</a>
+    <a id="nav-clicks" href="clicks.html">Clics</a>
+    <a id="nav-forms" href="forms.html">Formulaires</a>
+    <a id="nav-dynamic" href="dynamic.html">Asynchrone</a>
+    <a id="nav-tables" href="tables.html">Tableaux</a>
+    <a id="nav-windows" href="windows.html">Fenêtres</a>
+    <a id="nav-frames" href="frames.html">Iframes</a>
+    <a id="nav-files" href="files.html">Fichiers</a>
+    <a id="nav-widgets" href="widgets.html">Widgets</a>
+    <a id="nav-gestures" href="gestes.html">Gestes</a>
+    <a id="nav-sync" href="synchro.html">Synchro</a>
+    <a id="nav-overlay" href="calque.html">Calque permanent</a>
+    <a id="nav-latency" class="active" aria-current="page" href="latence.html">Latence</a>
+  </nav>
+</header>
+<main>
+  <div class="page-intro">
+    <h1 id="page-title">Latence</h1>
+    <p>Chargements longs, profils réseau dégradés (lent, instable, catastrophique), réponses au compte-gouttes,
+      scripts et feuilles de style qui arrivent après l'affichage de la page.</p>
+    <p class="hint">Paramètres d'URL : <code>?profil=lent|instable|catastrophique&amp;graine=N</code> applique un profil réseau
+      à votre espace de données dès l'arrivée sur la page ; <code>?ressources=N</code> fixe le retard (ms) des scripts et styles tardifs (3000 par défaut).</p>
+  </div>
+
+  <section class="card" id="section-profil">
+    <h2>Profil réseau de votre espace</h2>
+    <p class="hint">Le profil s'applique à tous les appels d'API de votre espace (cette page et toutes les autres), jusqu'à la remise à zéro.
+      Lent : 2 à 5 s. Instable : 0,2 à 8 s, 10 % d'erreurs 503. Catastrophique : 1 à 15 s, 20 % d'erreurs 503, 5 % de connexions coupées.
+      Même graine = même séquence.</p>
+    <div class="row">
+      <label for="profil-select">Profil</label>
+      <select id="profil-select">
+        <option value="aucun">aucun</option>
+        <option value="lent">lent</option>
+        <option value="instable">instable</option>
+        <option value="catastrophique">catastrophique</option>
+      </select>
+      <label for="graine-input">Graine</label>
+      <input type="number" id="graine-input" placeholder="aléatoire" min="1">
+      <button type="button" id="btn-profil-appliquer" class="primary">Appliquer</button>
+    </div>
+    <div id="profil-actif" class="result" role="status">Profil actif : …</div>
+    <h3>Appel unique avec un numéro de tirage imposé</h3>
+    <p class="hint">Un seul appel, portant le numéro choisi : avec la graine du profil, on sait d'avance sa latence et son incident.</p>
+    <div class="row">
+      <label for="tirage-impose-input">Numéro de tirage</label>
+      <input type="number" id="tirage-impose-input" min="0" value="0">
+      <button type="button" id="btn-appel-unique">Appel unique</button>
+      <span id="appel-unique-spinner" class="spinner" role="status"></span>
+    </div>
+    <div id="appel-unique-resultat" class="result" role="status" data-etat="attente"></div>
+    <h3>Rafale de 10 appels simultanés</h3>
+    <p class="hint">Chaque appel porte son numéro de tirage : avec la même graine, chaque appel reçoit la même latence et le même incident.</p>
+    <div class="row">
+      <button type="button" id="btn-rafale">Lancer la rafale</button>
+      <span id="rafale-spinner" class="spinner" role="status"></span>
+    </div>
+    <ol id="rafale-list" class="rafale-list"></ol>
+    <div id="rafale-resume" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-bloc-long">
+    <h2>Bloc chargé en 4 s à l'arrivée sur la page</h2>
+    <div class="row">
+      <span id="bloc-long-spinner" class="spinner" role="status"></span>
+      <div id="bloc-long" class="result" role="status" data-etat="chargement">Chargement du bloc…</div>
+    </div>
+    <div class="row"><button type="button" id="btn-bloc-recharger">Recharger le bloc</button></div>
+  </section>
+
+  <section class="card" id="section-bouton-tardif">
+    <h2>Bouton activé 3,5 s après l'arrivée sur la page</h2>
+    <div class="row">
+      <button type="button" id="btn-active-tard" class="primary" disabled>Action différée</button>
+      <span id="bouton-tardif-etat" class="hint">désactivé, en attente du serveur…</span>
+    </div>
+    <div id="bouton-tardif-resultat" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-goutte">
+    <h2>Réponses au compte-gouttes (10 éléments en 5 s)</h2>
+    <p class="hint">Flux : chaque élément s'affiche dès qu'il arrive. Réponse JSON : rien n'est exploitable avant la fin, alors que les entêtes sont arrivés tout de suite.</p>
+    <div class="row">
+      <button type="button" id="btn-goutte-flux">Recevoir au fil de l'eau</button>
+      <button type="button" id="btn-goutte-json">Recevoir la réponse JSON complète</button>
+    </div>
+    <ol id="goutte-list" class="goutte-list"></ol>
+    <div id="goutte-statut" class="result" role="status"></div>
+    <div id="goutte-json-statut" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-tableau-auto">
+    <h2>Tableau rafraîchi automatiquement toutes les 4 s</h2>
+    <p class="hint">Chaque rafraîchissement recrée les lignes : une référence prise avant devient périmée.</p>
+    <div class="row">
+      <button type="button" id="btn-auto-start">Reprendre</button>
+      <button type="button" id="btn-auto-stop">Suspendre</button>
+      <span id="auto-refresh-count" class="hint" data-count="0">Rafraîchissements : 0</span>
+    </div>
+    <table id="tableau-auto">
+      <thead><tr><th>Id</th><th>Nom</th><th>Action</th></tr></thead>
+      <tbody id="tableau-auto-body"></tbody>
+    </table>
+    <div id="auto-resultat" class="result" role="status"></div>
+  </section>
+
+  <section class="card" id="section-fichier-goutte">
+    <h2>Téléchargement au compte-gouttes (512 Ko en 10 s)</h2>
+    <div class="row">
+      <a id="lien-fichier-goutte" class="btn" href="../api/latence/fichier?duree=10000&amp;taille=524288&amp;morceaux=20">Télécharger fichier-goutte.txt</a>
+    </div>
+  </section>
+
+  <section class="card" id="section-ressources">
+    <h2>Script et feuille de style tardifs</h2>
+    <p class="hint">La page est complètement chargée, le bouton est affiché, mais le script qui le rend actif n'arrive qu'après quelques secondes :
+      un clic trop tôt reste sans effet. La feuille de style tardive fait apparaître un second bouton et décale la mise en page.</p>
+    <div class="row">
+      <button type="button" id="btn-script-tardif">Action portée par le script tardif</button>
+      <span id="etat-script" class="hint" data-pret="false">Script en attente…</span>
+    </div>
+    <div id="script-tardif-resultat" class="result" role="status"></div>
+    <div id="zone-css-tardif">
+      <div class="decalage-css"></div>
+      <div class="row">
+        <button type="button" id="btn-css-tardif" class="attend-css">Bouton révélé par le style tardif</button>
+        <span id="etat-css" class="hint">Style en attente…</span>
+      </div>
+      <div id="css-tardif-resultat" class="result" role="status"></div>
+    </div>
+  </section>
+</main>
+
+<script src="js/jquery-3.7.1.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/latence.js"></script>
+</body>
+</html>

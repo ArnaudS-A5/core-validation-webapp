@@ -57,6 +57,7 @@ Chaque front reproduit ce panneau avec les mêmes `id`.
 | `gestes.html` | **Appui long**, liste triable à la souris (sans HTML5), **molette** et défilement horizontal, **canvas** (dessin et cibles cliquables par coordonnées), éléments **SVG**, navigation **Tab / Maj+Tab** avec focus et perte de focus, copier-coller au clavier |
 | `synchro.html` | **Défilement infini** (chargement serveur à l'approche du bas), **bandeau fixe qui recouvre** les éléments, animation longue, **flux temps réel SSE** poussé par le serveur, action disponible à partir d'un seuil, **Shadow DOM fermé** et Shadow DOM imbriqué différé |
 | `calque.html` | **Calque plein écran permanent** (« chargement en cours » jamais terminé, curseur normal) au-dessus d'un bouton et d'un lien : clic natif toujours intercepté, attente de « cliquable » toujours expirée — branches d'erreur du socle ; seul un clic JavaScript passe |
+| `latence.html` | **Latence** : profil réseau de l'espace (sélection + graine), appel unique avec numéro de tirage imposé (`#tirage-impose-input`, `#btn-appel-unique`, résultat `#appel-unique-resultat` : `data-etat` ok / erreur / coupure, `data-duree-ms` mesurée dans la page) et rafale de 10 appels simultanés (`#rafale-1`…`#rafale-10`, état `data-etat` ok / erreur / coupure), bloc chargé en 4 s à l'arrivée, bouton activé après 3,5 s, liste au compte-gouttes reçue au fil de l'eau (`#goutte-item-N`) ou en JSON exploitable seulement à la fin, tableau recréé toutes les 4 s (références périmées), téléchargement de 512 Ko étalé sur 10 s, script et feuille de style insérés après le chargement complet de la page (bouton affiché mais inerte, bouton révélé par le style). Paramètres d'URL : `?profil=…&graine=N`, `?ressources=N` (retard des ressources tardives, 3000 ms par défaut) |
 
 ## Latence et pilotage
 
@@ -64,7 +65,18 @@ Chaque front reproduit ce panneau avec les mêmes `id`.
 * **Par appel** : tout endpoint accepte `?delay=N` (ms).
 * **Par page** : `/classic/dynamic.html?delay=1500` impose 1500 ms à tous les appels API de la page.
 * **À chaud** : `PUT /api/admin/settings` avec `{"defaultDelayMs": 800, "jitterMs": 400}` ; `GET /api/admin/settings` pour lire.
-* **Remise à zéro** : `POST /api/admin/reset` (articles, compteurs d'échecs, tâches) — à appeler en début de scénario pour des tests reproductibles.
+* **Remise à zéro** : `POST /api/admin/reset` (articles, compteurs d'échecs, tâches, profil réseau) — à appeler en début de scénario pour des tests reproductibles.
+* **Profils réseau** (par espace) : `PUT /api/admin/profil` avec `{"profil": "catastrophique", "graine": 42}` ; `GET /api/admin/profil` pour lire. Chaque appel d'API de l'espace (hors `/api/admin` et `/api/version`) reçoit une latence tirée au hasard, en plus de la latence habituelle, et éventuellement un incident :
+
+  | Profil | Latence | Incidents |
+  |---|---|---|
+  | `aucun` | — | — |
+  | `lent` | 2 à 5 s | — |
+  | `instable` | 0,2 à 8 s | 10 % d'erreurs 503 |
+  | `catastrophique` | 1 à 15 s | 20 % d'erreurs 503, 5 % de connexions coupées en cours de réponse |
+
+  Même graine = même séquence. Le n-ième appel de l'espace reçoit le n-ième tirage ; le paramètre `?tirage=N` impose le numéro (séquence rejouable même avec des appels simultanés). L'en-tête `X-Reseau-Tirage` indique le tirage appliqué ; `GET /api/admin/tirages` renvoie les 50 derniers tirages de l'espace (numéro, chemin, latence, incident, heure), sans en consommer. `POST /api/admin/reset` retire le profil.
+* **Ressources lentes** : tout fichier d'un dossier `lent/` d'un front (ex. `/classic/lent/latence-tardif.js?delai=4000`) n'est servi qu'après `delai` ms (3000 par défaut).
 * **Espaces de données isolés** (exécution en parallèle) : avec le cookie `testapp-espace=<identifiant>` (lettres, chiffres, `-`, `_`, 64 caractères au plus), une session travaille dans son propre espace : articles, compteurs, tâches et latence. `POST /api/admin/reset` et `PUT /api/admin/settings` ne touchent alors que cet espace. Sans cookie : espace commun. Le cookie étant renvoyé par le navigateur à chaque appel, aucune page n'a besoin d'être modifiée. Un espace inactif depuis 1 heure est supprimé.
 
 ## API
@@ -85,7 +97,9 @@ Chaque front reproduit ce panneau avec les mêmes `id`.
 | `GET /api/files/download/{txt,csv,json,zip,bin}` | Téléchargements (`delay`, `size` pour `bin`) |
 | `POST /api/files/upload` | Champ multipart `file` → nom, taille, SHA-256 |
 | `GET /api/stream/events?count=N&interval=ms` | Flux SSE : N événements `message` puis un événement `end` |
-| `GET/PUT /api/admin/settings`, `POST /api/admin/reset` | Pilotage (limité à l'espace de l'appelant) |
+| `GET /api/latence/goutte?nombre=10&intervalle=500&format=ndjson\|json` | Liste au compte-gouttes : entêtes immédiats, un élément toutes les `intervalle` ms (NDJSON exploitable au fil de l'eau, ou tableau JSON) |
+| `GET /api/latence/fichier?duree=10000&taille=524288&morceaux=20` | Fichier texte téléchargé au compte-gouttes (taille annoncée d'emblée) |
+| `GET/PUT /api/admin/settings`, `GET/PUT /api/admin/profil`, `GET /api/admin/tirages`, `POST /api/admin/reset` | Pilotage : latence, profil réseau, journal des tirages, remise à zéro (limité à l'espace de l'appelant) |
 | `GET /api/admin/espace` | Espace de l'appelant et nombre d'espaces isolés actifs |
 
 ## Structure
@@ -94,12 +108,14 @@ Chaque front reproduit ce panneau avec les mêmes `id`.
 src/main/java/fr/socle/testapp/
   TestAppApplication.java
   config/WebConfig.java          # /classic → /classic/index.html (à étendre pour react, vue, angular)
+  config/ReseauInterceptor.java  # profil réseau de l'espace appliqué aux appels d'API
+  config/RessourceLenteFilter.java # fichiers des dossiers lent/ servis en retard
   api/                           # contrôleurs REST
-  service/                       # latence, état des scénarios, jeu de données
+  service/                       # espaces, latence, réseau simulé, état des scénarios, jeu de données
 src/main/resources/
   application.properties
   static/index.html              # accueil
-  static/classic/                # front HTML + jQuery (pages, js/, css/, frames/)
+  static/classic/                # front HTML + jQuery (pages, js/, css/, frames/, lent/)
 ```
 
 ## Suite prévue

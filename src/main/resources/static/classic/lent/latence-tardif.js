@@ -8,5 +8,6 @@
   $('#btn-script-tardif').on('click', function () {
     App.showResult('#script-tardif-resultat', 'Action exécutée par le script tardif', false);
   });
-  $('#etat-script').text('Script chargé').attr('data-pret', 'true');
+  // Instant d'arrivée, en ms depuis le début de la navigation vers la page
+  $('#etat-script').text('Script chargé').attr({ 'data-pret': 'true', 'data-arrivee-ms': Math.round(performance.now()) });
 })(jQuery);

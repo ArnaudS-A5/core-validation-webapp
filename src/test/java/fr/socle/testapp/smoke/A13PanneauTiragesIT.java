@@ -23,7 +23,7 @@ class A13PanneauTiragesIT extends SmokeTestBase {
     @ParameterizedTest(name = "{0}")
     @Order(1)
     @ValueSource(strings = {"index.html", "login.html", "clicks.html", "forms.html", "dynamic.html", "tables.html",
-            "windows.html", "frames.html", "files.html", "widgets.html", "gestes.html", "synchro.html", "calque.html"})
+            "windows.html", "frames.html", "files.html", "widgets.html", "gestes.html", "synchro.html", "calque.html", "latence.html"})
     void panneau_sans_profil_sur_chaque_page(String page) {
         open(page);
         assertThat(visible("#panneau-tirages")).as("panneau affiché").isTrue();

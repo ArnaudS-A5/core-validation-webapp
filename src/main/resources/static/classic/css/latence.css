@@ -1,0 +1,6 @@
+/* Page Latence : éléments qui dépendent de la feuille de style tardive (lent/latence-tardif.css) */
+.attend-css { display: none; }
+.decalage-css { height: 0; }
+.rafale-list, .goutte-list { margin: .4rem 0; }
+.rafale-list li[data-etat=ok] { color: #1e7e46; }
+.rafale-list li[data-etat=erreur], .rafale-list li[data-etat=coupure] { color: #c0392b; }

@@ -1,0 +1,3 @@
+/* Feuille de style servie en retard (?delai=N) : révèle le bouton et décale la mise en page */
+#zone-css-tardif .attend-css { display: inline-block; }
+#zone-css-tardif .decalage-css { height: 140px; background: repeating-linear-gradient(45deg, #f0f4f8, #f0f4f8 10px, #e4ecf5 10px, #e4ecf5 20px); }

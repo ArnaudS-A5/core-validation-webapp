@@ -31,6 +31,16 @@ Tout est embarqué dans le JAR, y compris jQuery 3.7.1 (`classic/js/jquery-3.7.1
 * Le script `common.js` recopie chaque `id` dans **`data-testid`** (y compris pour les éléments ajoutés dynamiquement).
 * Les listes dynamiques utilisent des suffixes numériques : `row-12`, `delete-12`, `suggestion-0`, `page-link-3`…
 
+## Panneau des tirages
+
+Sous l'en-tête de chaque page, le panneau `#panneau-tirages` affiche le profil réseau de l'espace (`#tirage-profil`),
+sa graine (`#tirage-graine`), le nombre de tirages effectués (`#tirages-effectues`) et les **5 derniers tirages**
+(`#tirage-ligne-0` = le plus récent ; cellules `#tirage-numero-N`, `#tirage-chemin-N`, `#tirage-latence-N`,
+`#tirage-incident-N`, `#tirage-heure-N` ; attributs `data-numero`, `data-latence`, `data-incident` sur la ligne).
+Sans profil, tout indique `n/a`. Le panneau relit `GET /api/admin/tirages` après chaque appel d'API ; il est
+visible sur les captures d'écran. L'en-tête et le panneau restent à l'écran, le contenu de la page défile en dessous.
+Chaque front reproduit ce panneau avec les mêmes `id`.
+
 ## Catalogue des pages (front classic)
 
 | Page | Scénarios |

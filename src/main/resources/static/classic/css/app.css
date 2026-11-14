@@ -148,3 +148,18 @@ svg .svg-point:hover { stroke: #102a43; stroke-width: 3; }
 .covered-wrap .cover-visible { background: repeating-linear-gradient(45deg, rgba(192,57,43,.28) 0 6px, rgba(255,255,255,.15) 6px 12px); }
 .overlay-full .overlay-box { display: flex; flex-direction: column; align-items: center; gap: .75rem; }
 .overlay-full .spinner-big { display: inline-block; width: 2.4rem; height: 2.4rem; border: 4px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; }
+
+/* Panneau des tirages du réseau simulé (common.js) : l'en-tête et le panneau restent à l'écran,
+   le contenu de la page (main) défile en dessous, dans sa propre zone ; rien ne passe sous le panneau. */
+body.avec-panneau { height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+body.avec-panneau > .site-header, body.avec-panneau > .panneau-tirages { flex: none; }
+body.avec-panneau > main { flex: 1 1 auto; min-height: 0; overflow: auto; max-width: none; margin: 0;
+  padding: 1rem max(1rem, calc((100% - 1068px) / 2)) 3rem; }
+.panneau-tirages { background: #f0f4f8; border-bottom: 1px solid #bcccdc; padding: .2rem 1rem; font-size: .78rem; color: #334e68; }
+.panneau-tirages .tirages-resume { margin-bottom: .1rem; }
+.panneau-tirages table { border-collapse: collapse; width: 100%; max-width: 900px; }
+.panneau-tirages th, .panneau-tirages td { text-align: left; padding: 0 .6rem 0 0; line-height: 1.3; white-space: nowrap; }
+.panneau-tirages th { color: #627d98; font-weight: 600; }
+.panneau-tirages td { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.panneau-tirages tr[data-incident="erreur"] td { color: #c0392b; }
+.panneau-tirages tr[data-incident="coupure"] td { color: #8e44ad; font-weight: 600; }

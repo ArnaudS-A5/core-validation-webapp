@@ -111,6 +111,20 @@ abstract class SmokeTestBase {
         }
     }
 
+    /** Applique un profil réseau à l'espace de ce navigateur, sans passer par une page (retiré par {@link #resetApp()}). */
+    protected void appliquerProfil(String profil, long graine) throws Exception {
+        HttpResponse<String> response = HttpClient.newHttpClient().send(
+                HttpRequest.newBuilder(URI.create(APP + "/api/admin/profil"))
+                        .header("Cookie", BrowserExtension.ESPACE_COOKIE + "=" + BrowserExtension.espace(d))
+                        .header("Content-Type", "application/json")
+                        .PUT(HttpRequest.BodyPublishers.ofString("{\"profil\":\"" + profil + "\",\"graine\":" + graine + "}"))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() != 200) {
+            throw new IllegalStateException("Profil réseau non appliqué : HTTP " + response.statusCode() + " " + response.body());
+        }
+    }
+
     // ---------- Navigation ----------
 
     protected void open(String page) {

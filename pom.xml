@@ -200,13 +200,14 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
+                            <!-- Jeu de tests : IT = contrôle de fumée (défaut), LT = tests de latence (sur demande) -->
                             <includes>
-                                <include>**/smoke/**/*IT.java</include>
+                                <include>**/smoke/**/*${smoke.jeu}.java</include>
                             </includes>
-                            <!-- Rapports et synthèse propres à chaque navigateur : plusieurs exécutions
+                            <!-- Rapports et synthèse propres à chaque jeu et navigateur : plusieurs exécutions
                                  (successives ou simultanées) ne s'écrasent pas -->
-                            <reportsDirectory>${project.build.directory}/failsafe-reports-${browser}</reportsDirectory>
-                            <summaryFile>${project.build.directory}/failsafe-summary-${browser}.xml</summaryFile>
+                            <reportsDirectory>${project.build.directory}/failsafe-reports-${smoke.rapport}</reportsDirectory>
+                            <summaryFile>${project.build.directory}/failsafe-summary-${smoke.rapport}.xml</summaryFile>
                             <!-- Classes de test (une page chacune) en parallèle sur smoke.sessions navigateurs ;
                                  les tests d'une même classe restent dans l'ordre, sur le même navigateur -->
                             <properties>
@@ -226,6 +227,7 @@
                                 <allure.results.directory>${allure.results.directory}</allure.results.directory>
                                 <smoke.ralenti>${smoke.ralenti}</smoke.ralenti>
                                 <smoke.sessions>${smoke.sessions}</smoke.sessions>
+                                <smoke.suite>${smoke.suite}</smoke.suite>
                                 <app.expectedVersion>${app.expectedVersion}</app.expectedVersion>
                             </systemPropertyVariables>
                         </configuration>
@@ -248,6 +250,10 @@
                 <smoke.ralenti>0</smoke.ralenti>
                 <!-- Nombre de navigateurs ouverts en parallèle pour ce navigateur (la CI le calcule d'après le Grid) -->
                 <smoke.sessions>1</smoke.sessions>
+                <!-- Jeu de tests (IT : fumée, LT : latence), suffixe des rapports et nom de la suite dans Allure -->
+                <smoke.jeu>IT</smoke.jeu>
+                <smoke.rapport>${browser}</smoke.rapport>
+                <smoke.suite/>
                 <!-- Version attendue sur l'application déployée (fournie par la CI) ; vide = non vérifiée -->
                 <app.expectedVersion/>
             </properties>

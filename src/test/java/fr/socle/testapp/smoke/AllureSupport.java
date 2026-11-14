@@ -21,14 +21,17 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
 /**
- * Enrichit le rapport Allure du contrôle de fumée :
- * navigateur en paramètre (un même test par navigateur), regroupement par navigateur,
+ * Enrichit le rapport Allure du contrôle de fumée et des tests de latence :
+ * navigateur en paramètre (un même test par navigateur), regroupement par jeu de tests et navigateur,
  * capture d'écran et adresse de la page jointes à chaque test en échec,
  * fiche d'environnement (application, Grid, navigateur).
  */
 public class AllureSupport implements BeforeAllCallback, BeforeEachCallback, AfterTestExecutionCallback {
 
     private static final String BROWSER = System.getProperty("browser", "chrome").trim().toLowerCase();
+    /** Jeu de tests : « Fumée » (défaut) ou « Latence ». */
+    private static final String SUITE = System.getProperty("smoke.suite", "").isBlank()
+            ? "Fumée" : System.getProperty("smoke.suite").trim();
 
     @Override
     public void beforeAll(ExtensionContext context) throws IOException {
@@ -43,14 +46,14 @@ public class AllureSupport implements BeforeAllCallback, BeforeEachCallback, Aft
         env.setProperty("Application", System.getProperty("app.url", ""));
         env.setProperty("Grid", System.getProperty("grid.url", "").isBlank() ? "navigateur local" : System.getProperty("grid.url"));
         try (Writer out = Files.newBufferedWriter(results.resolve("environment.properties"), StandardCharsets.UTF_8)) {
-            env.store(out, "Contrôle de fumée socle-testapp");
+            env.store(out, SUITE + " socle-testapp");
         }
     }
 
     @Override
     public void beforeEach(ExtensionContext context) {
         Allure.parameter("navigateur", BROWSER);
-        Allure.label("parentSuite", "Fumée " + BROWSER);
+        Allure.label("parentSuite", SUITE + " " + BROWSER);
         // Sans cela, un même test exécuté sur 3 navigateurs porte le même historyId :
         // Allure le prend pour 3 relances du même test et n'en affiche qu'une.
         Allure.getLifecycle().updateTestCase(result -> {

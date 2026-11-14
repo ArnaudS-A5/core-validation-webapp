@@ -1,6 +1,7 @@
 // Chaîne CI/CD de socle-testapp
 // build + tests unitaires → Sonar (porte qualité) → JAR dans Nexus → image Docker dans Nexus
 // → déploiement sur testapp.home.arpa:8085 → contrôle de fumée via le Grid
+// → tests de latence via le Grid (sur demande : liste TESTS de « Build with Parameters », « Latence seule » ou « Fumée + latence »)
 // Toutes les versions (JAR et images) sont conservées dans Nexus.
 //
 // Règle : tout est compilé et le JAR est fabriqué UNE SEULE FOIS, à la première étape.
@@ -15,6 +16,64 @@ def mvn(String arguments, boolean codeRetour = false) {
         code = sh(returnStatus: codeRetour, script: "mvn -B -ntp -s \"\$MAVEN_SETTINGS\" -Drevision=${env.VERSION} ${arguments}")
     }
     return code
+}
+
+// Sessions navigateur pour chacun des navigateurs : nombre imposé (SESSIONS_PAR_NAVIGATEUR) ou, en « auto »,
+// toute la capacité libre du Grid répartie entre eux (part égale, puis le reste aux plus lents, au moins 1 chacun).
+def sessionsParNavigateur(List navigateurs) {
+    def priorite = ['edge', 'chrome', 'firefox']
+    def sessions = [:]
+    String demande = (params.SESSIONS_PAR_NAVIGATEUR ?: 'auto').trim()
+    if (demande.isInteger()) {
+        navigateurs.each { sessions[it] = Math.max(1, demande.toInteger()) }
+    } else {
+        // Capacité libre réelle : par nœud disponible, sessions maximales moins sessions en cours
+        int libres = sh(returnStdout: true, script: '''
+            curl -fsS "$GRID_URL/status" | python3 -c "import json, sys; v = json.load(sys.stdin)['value']; print(sum(max(0, n.get('maxSessions', 1) - sum(1 for s in n['slots'] if s.get('session'))) for n in v['nodes'] if n.get('availability') == 'UP'))"
+        ''').trim().toInteger()
+        echo "Nœuds libres sur le Grid : ${libres}"
+        int part = libres.intdiv(navigateurs.size())
+        int reste = libres % navigateurs.size()
+        priorite.eachWithIndex { nav, i -> sessions[nav] = Math.max(1, part + (i < reste ? 1 : 0)) }
+    }
+    echo "Sessions par navigateur : ${sessions}"
+    return sessions
+}
+
+// Exécute un jeu de tests Selenium déjà compilés (étape 1) sur Chrome, Firefox et Edge en parallèle, via le Grid :
+// ni compilation, ni fabrication du JAR, ni couverture. Chaque session travaille dans son propre espace de données
+// de l'application. Rapports propres au jeu et au navigateur (failsafe-reports-<rapport>, allure-results-<rapport>).
+//   jeu     : IT (contrôle de fumée) ou LT (tests de latence)
+//   prefixe : préfixe des rapports ('' pour la fumée, 'latence-' pour la latence)
+//   nom     : nom des branches parallèles
+//   suite   : nom de la suite dans Allure (null = suite par défaut des tests, « Fumée »)
+def testsNavigateurs(String jeu, String prefixe, String nom, String suite) {
+    def navigateurs = ['chrome', 'firefox', 'edge']
+    def sessions = sessionsParNavigateur(navigateurs)
+    def branches = [:]
+    for (n in navigateurs) {
+        def browser = n
+        def rapport = prefixe + browser
+        branches["${nom} ${browser}"] = {
+            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                sh "rm -rf target/failsafe-reports-${rapport} target/failsafe-summary-${rapport}.xml target/allure-results-${rapport}"
+                mvn("-Psmoke failsafe:integration-test failsafe:verify" +
+                    " -Dsmoke.jeu=${jeu} -Dsmoke.rapport=${rapport}" + (suite ? " -Dsmoke.suite=${suite}" : '') +
+                    " -Dbrowser=${browser} -Dsmoke.sessions=${sessions[browser]}" +
+                    " -Dapp.url=${env.APP_URL} -Dgrid.url=${env.GRID_URL}" +
+                    " -Dallure.results.directory=${env.WORKSPACE}/target/allure-results-${rapport}" +
+                    " -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'} -Dapp.expectedVersion=${env.VERSION}")
+            }
+            // Rapports JUnit préfixés par le jeu et le navigateur pour les distinguer dans Jenkins
+            sh """
+                for f in target/failsafe-reports-${rapport}/TEST-*.xml; do
+                    [ -e "\$f" ] || continue
+                    sed -i 's/classname="/classname="${rapport}./g' "\$f"
+                done
+            """
+        }
+    }
+    parallel branches
 }
 
 pipeline {
@@ -36,6 +95,9 @@ pipeline {
                description: 'Mode observation du contrôle de fumée : pause en ms après chaque geste (ex. 800) pour suivre le déroulé dans le Grid. 0 = vitesse normale.')
         string(name: 'SESSIONS_PAR_NAVIGATEUR', defaultValue: 'auto',
                description: 'Nombre de navigateurs ouverts en parallèle pour chacun de Chrome, Firefox et Edge. « auto » = nœuds libres du Grid ÷ 3 (au moins 1).')
+        // Premier choix = valeur par défaut, celle des builds lancés par le webhook
+        choice(name: 'TESTS', choices: ['Fumée', 'Latence seule', 'Fumée + latence'],
+               description: 'Tests via le Grid après le déploiement. Fumée : contrôle de fumée seul (défaut, webhook). Latence seule : tests de latence sans la fumée (réseau dégradé, réponses au compte-gouttes, attentes longues). Fumée + latence : les deux, la latence après la fumée.')
     }
 
     tools {
@@ -149,65 +211,33 @@ pipeline {
         }
 
         stage('Contrôle de fumée') {
+            when {
+                expression { (params.TESTS ?: 'Fumée') != 'Latence seule' }
+            }
             steps {
                 script {
-                    // Les trois navigateurs en parallèle ; chacun répartit ses pages sur plusieurs sessions.
-                    // Chaque session travaille dans son propre espace de données de l'application : aucune interférence.
-                    // Ordre de priorité : les navigateurs les plus lents reçoivent en premier les nœuds restants
-                    def navigateurs = ['chrome', 'firefox', 'edge']
-                    def priorite = ['edge', 'chrome', 'firefox']
-                    def sessions = [:]
-                    String demande = (params.SESSIONS_PAR_NAVIGATEUR ?: 'auto').trim()
-                    if (demande.isInteger()) {
-                        navigateurs.each { sessions[it] = Math.max(1, demande.toInteger()) }
-                    } else {
-                        // Capacité libre réelle : par nœud disponible, sessions maximales moins sessions en cours
-                        int libres = sh(returnStdout: true, script: '''
-                            curl -fsS "$GRID_URL/status" | python3 -c "import json, sys; v = json.load(sys.stdin)['value']; print(sum(max(0, n.get('maxSessions', 1) - sum(1 for s in n['slots'] if s.get('session'))) for n in v['nodes'] if n.get('availability') == 'UP'))"
-                        ''').trim().toInteger()
-                        echo "Nœuds libres sur le Grid : ${libres}"
-                        // Toute la capacité est répartie : part égale, puis le reste aux plus lents (au moins 1 chacun)
-                        int part = libres.intdiv(navigateurs.size())
-                        int reste = libres % navigateurs.size()
-                        priorite.eachWithIndex { nav, i -> sessions[nav] = Math.max(1, part + (i < reste ? 1 : 0)) }
-                    }
-                    echo "Sessions par navigateur : ${sessions}"
-
-                    def branches = [:]
-                    for (n in navigateurs) {
-                        def browser = n
-                        branches["Fumée ${browser}"] = {
-                            catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                                // Exécution seule des tests de fumée déjà compilés (étape 1) : ni compilation,
-                                // ni fabrication du JAR, ni couverture. Rapports propres au navigateur
-                                // (failsafe-reports-<navigateur>, allure-results-<navigateur>).
-                                sh "rm -rf target/failsafe-reports-${browser} target/failsafe-summary-${browser}.xml target/allure-results-${browser}"
-                                mvn("-Psmoke failsafe:integration-test failsafe:verify" +
-                                    " -Dbrowser=${browser} -Dsmoke.sessions=${sessions[browser]}" +
-                                    " -Dapp.url=${env.APP_URL} -Dgrid.url=${env.GRID_URL}" +
-                                    " -Dallure.results.directory=${env.WORKSPACE}/target/allure-results-${browser}" +
-                                    " -Dsmoke.ralenti=${params.RALENTI_MS ?: '0'} -Dapp.expectedVersion=${env.VERSION}")
-                            }
-                            // Rapports JUnit préfixés par le navigateur pour les distinguer dans Jenkins
-                            sh """
-                                for f in target/failsafe-reports-${browser}/TEST-*.xml; do
-                                    [ -e "\$f" ] || continue
-                                    sed -i 's/classname="/classname="${browser}./g' "\$f"
-                                done
-                            """
-                        }
-                    }
-                    parallel branches
+                    testsNavigateurs('IT', '', 'Fumée', null)
                 }
             }
             post {
                 always {
                     junit allowEmptyResults: true, testResults: 'target/failsafe-reports-*/TEST-*.xml'
-                    // Rapport HTML Allure (plugin Jenkins Allure + outil « allure » déclaré dans Tools)
-                    allure includeProperties: false, jdk: '', results: [
-                            [path: 'target/allure-results-chrome'],
-                            [path: 'target/allure-results-firefox'],
-                            [path: 'target/allure-results-edge']]
+                }
+            }
+        }
+
+        stage('Tests de latence') {
+            when {
+                expression { (params.TESTS ?: 'Fumée') != 'Fumée' }
+            }
+            steps {
+                script {
+                    testsNavigateurs('LT', 'latence-', 'Latence', 'Latence')
+                }
+            }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'target/failsafe-reports-latence-*/TEST-*.xml'
                 }
             }
         }
@@ -216,6 +246,19 @@ pipeline {
     post {
         always {
             sh 'rm -rf .docker-ci'
+            script {
+                // Un seul rapport Allure (plugin Jenkins Allure + outil « allure » déclaré dans Tools) pour la fumée
+                // et, si elle a tourné, la latence : un dossier de résultats par jeu et par navigateur
+                def resultats = []
+                for (dossier in sh(returnStdout: true, script: 'ls -d target/allure-results-* 2>/dev/null || true').trim().split('\n')) {
+                    if (dossier) {
+                        resultats << [path: dossier]
+                    }
+                }
+                if (resultats) {
+                    allure includeProperties: false, jdk: '', results: resultats
+                }
+            }
         }
         success {
             echo "Version ${env.VERSION} déployée : ${env.APP_URL}/classic/"

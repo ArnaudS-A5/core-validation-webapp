@@ -17,10 +17,12 @@ class A04AsynchroneIT extends SmokeTestBase {
     @Order(1)
     void contenu_differe_avec_spinner() {
         open("dynamic.html");
-        js("document.getElementById('delay-input').value = '600'");
+        // 2 s : le spinner doit rester affiché assez longtemps pour être vu après un clic passé par le Grid
+        // (avec 600 ms, un navigateur un peu lent ne le voyait plus : build 23, Firefox)
+        js("document.getElementById('delay-input').value = '2000'");
         click("#btn-load-delayed");
         assertThat(visible("#delayed-spinner")).as("spinner visible").isTrue();
-        assertThat(waitText("#delayed-content", "après 600 ms")).as("contenu différé").isTrue();
+        assertThat(waitText("#delayed-content", "après 2000 ms")).as("contenu différé").isTrue();
     }
 
     @Test
